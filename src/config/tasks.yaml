@@ -1,0 +1,47 @@
+task1:
+  description: >
+    Phân tích đề bài từ User: "{user_request}" và liệt kê chi tiết các tính năng cần có.
+  expected_output: >
+    File PRD.md và User_Stories.json
+  output_file: 'PRD.md'
+  agent: ba
+
+task2:
+  description: >
+    Dựa vào PRD để mô tả cấu trúc trang và các component cần thiết.
+  expected_output: >
+    File Design_Spec.md
+  output_file: 'Design_Spec.md'
+  agent: ui_ux
+
+task3:
+  description: >
+    Thiết kế sơ đồ Database và viết mã nguồn cho các API.
+  expected_output: >
+    Mã nguồn Backend & Swagger_API.yaml
+  output_file: 'Backend_Architecture.md'
+  agent: senior_be
+
+task4:
+  description: >
+    Xây dựng UI dựa trên Design Spec và gọi API từ BE.
+  expected_output: >
+    Mã nguồn Frontend hoàn chỉnh
+  output_file: 'Frontend_Architecture.md'
+  agent: senior_fe
+
+task5:
+  description: >
+    Kiểm tra chéo toàn bộ code và thực hiện Unit Test.
+  expected_output: >
+    Bug_Report.md và Test_Suite.py
+  output_file: 'QA_Report.md'
+  agent: qa
+
+task6:
+  description: >
+    Viết file cấu hình Docker và script triển khai.
+  expected_output: >
+    Dockerfile, docker-compose.yml
+  output_file: 'DevOps_Config.md'
+  agent: devops
