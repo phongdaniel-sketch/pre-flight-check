@@ -20,3 +20,4 @@ Pre-flight check/backend/static/uploads/
 static/uploads/
 api/__pycache__/
 pre_flight_check/__pycache__/
+.vercel

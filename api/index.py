@@ -7,14 +7,14 @@ import os
 import uuid
 from typing import Optional
 
-from models import CampaignInput, IndustryConfig, AnalysisResult, PolicyResult, CreativeMetrics
-from services import BenchmarkService, N8nClient, ScoringEngine
-
 app = FastAPI(title="Pre-flight Check Tool API")
 
 # Vercel Path Fix: Ensure current directory is in sys.path for local imports
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from models import CampaignInput, IndustryConfig, AnalysisResult, PolicyResult, CreativeMetrics
+from services import BenchmarkService, N8nClient, ScoringEngine
 
 # CORS (Allow Frontend)
 app.add_middleware(
