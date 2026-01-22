@@ -12,26 +12,16 @@ from typing import Optional
 # Vercel Path Fix: Ensure current directory is in sys.path for local imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-importerror = None
+# Define app globally for Vercel detection
+app = FastAPI(title="Pre-flight Check Tool API")
+
 try:
+    # Attempt Imports
     from models import CampaignInput, IndustryConfig, AnalysisResult, PolicyResult, CreativeMetrics
     from services import BenchmarkService, N8nClient, ScoringEngine
-except Exception as e:
-    importerror = e
 
-if importerror:
-    app = FastAPI(title="Boot Error")
-    @app.get("/{catchall:path}")
-    def error_handler(catchall: str):
-        return {
-            "status": "Boot Error", 
-            "error_type": type(importerror).__name__,
-            "error_message": str(importerror), 
-            "trace": traceback.format_exc()
-        }
-else:
-    app = FastAPI(title="Pre-flight Check Tool API")
-
+    # --- SUCCESS PATH ---
+    
     # CORS (Allow Frontend)
     app.add_middleware(
         CORSMiddleware,
@@ -41,20 +31,16 @@ else:
         allow_headers=["*"],
     )
 
-    # Static Mount (to serve uploaded videos and frontend)
-    # Fix: Point to root static folder for Vercel
+    # Static Mount Logic
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     STATIC_DIR = os.path.join(BASE_DIR, "static")
-
-    # Vercel Read-Only Fix: Use /tmp for uploads
     UPLOAD_DIR = "/tmp/uploads" if os.getenv("VERCEL") else os.path.join(STATIC_DIR, "uploads")
 
     try:
         os.makedirs(UPLOAD_DIR, exist_ok=True)
     except Exception:
-        pass # Ignore in read-only envs
+        pass
 
-    # Only mount static if it exists (prevent crash)
     if os.path.exists(STATIC_DIR):
         app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
@@ -124,21 +110,18 @@ else:
         }
 
         tasks = []
-        # Task A: Video
         if has_video:
             tasks.append(n8n_client.analyze_video(video_url, campaign_context))
         else:
             async def no_video(): return None
             tasks.append(no_video())
 
-        # Task B: Landing Page
         if landing_page_url:
             tasks.append(n8n_client.analyze_landing_page(landing_page_url))
         else:
             async def no_lp(): return None
             tasks.append(no_lp())
 
-        # Execute
         results = await asyncio.gather(*tasks)
         video_result, lp_result = results[0], results[1]
 
@@ -207,6 +190,23 @@ else:
         import json
         print(json.dumps(data, indent=2))
         return {"status": "received"}
+
+except Exception as e:
+    # --- ERROR PATH ---
+    # Define error handlers IF imports failed
+    # We use the SAME 'app' instance
+    import traceback
+    error_trace = traceback.format_exc()
+    error_msg = str(e)
+    
+    @app.get("/{catchall:path}")
+    def error_handler(catchall: str):
+        return {
+            "status": "Boot Error",
+            "error_type": type(e).__name__,
+            "error_message": error_msg,
+            "trace": error_trace
+        }
 
 if __name__ == "__main__":
     import uvicorn
