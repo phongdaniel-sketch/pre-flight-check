@@ -57,39 +57,39 @@ class AntigravityCrew():
 		)
 
 	@task
-	def task1(self) -> Task:
+	def sprint1_planning(self) -> Task:
 		return Task(
-			config=self.tasks_config['task1'],
+			config=self.tasks_config['sprint1_planning'],
 		)
 
 	@task
-	def task2(self) -> Task:
+	def sprint1_design(self) -> Task:
 		return Task(
-			config=self.tasks_config['task2'],
+			config=self.tasks_config['sprint1_design'],
 		)
 
 	@task
-	def task3(self) -> Task:
+	def sprint1_backend(self) -> Task:
 		return Task(
-			config=self.tasks_config['task3'],
+			config=self.tasks_config['sprint1_backend'],
 		)
 
 	@task
-	def task4(self) -> Task:
+	def sprint1_frontend(self) -> Task:
 		return Task(
-			config=self.tasks_config['task4'],
+			config=self.tasks_config['sprint1_frontend'],
 		)
 
 	@task
-	def task5(self) -> Task:
+	def sprint1_qa(self) -> Task:
 		return Task(
-			config=self.tasks_config['task5'],
+			config=self.tasks_config['sprint1_qa'],
 		)
 
 	@task
-	def task6(self) -> Task:
+	def sprint1_release(self) -> Task:
 		return Task(
-			config=self.tasks_config['task6'],
+			config=self.tasks_config['sprint1_release'],
 		)
 
 	@crew

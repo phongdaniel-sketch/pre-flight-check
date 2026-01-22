@@ -7,20 +7,34 @@
     <title>Pre-flight Check | Creative Scorer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        dark: '#0f172a',
-                        card: '#1e293b',
-                        tiktok: '#ff0050',
-                        tiktokCyan: '#00f2ea',
-                        accent: '#6366f1'
+                        cream: '#FDFBF7',
+                        surface: '#FFFFFF',
+                        indigo: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            300: '#A5B4FC',
+                            500: '#6366F1',
+                            600: '#4F46E5',
+                            700: '#4338CA',
+                        },
+                        pastel: {
+                            mint: '#34D399',
+                            butter: '#FCD34D',
+                            coral: '#F87171'
+                        }
                     },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['Nunito', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 40px -10px rgba(99, 102, 241, 0.15)',
+                        'glow': '0 0 20px rgba(99, 102, 241, 0.3)'
                     }
                 }
             }
@@ -28,30 +42,30 @@
     </script>
     <style>
         body {
-            background-color: #0f172a;
-            color: white;
+            background-color: #FDFBF7;
+            color: #374151;
         }
 
-        .glass {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
         }
 
         .gradient-text {
-            background: linear-gradient(to right, #00f2ea, #ff0050);
+            background: linear-gradient(135deg, #4338CA, #6366F1);
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            width: 36px;
-            height: 36px;
+            border: 3px solid rgba(99, 102, 241, 0.1);
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
-            border-left-color: #00f2ea;
+            border-left-color: #6366F1;
             animation: spin 1s linear infinite;
         }
 
@@ -67,46 +81,57 @@
 
         /* Custom File Input */
         .file-drop-zone {
-            border: 2px dashed #475569;
+            border: 2px dashed #E2E8F0;
             transition: all 0.3s ease;
+            background-color: #F8FAFC;
         }
 
         .file-drop-zone:hover,
         .file-drop-zone.dragover {
-            border-color: #00f2ea;
-            background: rgba(0, 242, 234, 0.05);
+            border-color: #6366F1;
+            background: #EEF2FF;
+            transform: scale(1.01);
         }
     </style>
 </head>
 
-<body class="min-h-screen flex flex-col items-center p-6">
+<body class="min-h-screen flex flex-col items-center p-6 font-sans">
 
     <!-- Header -->
-    <header class="w-full max-w-5xl flex justify-between items-center mb-10 animate-fade-in-down">
+    <header class="w-full max-w-5xl flex justify-between items-center mb-10 mt-4">
         <div class="flex items-center gap-3">
             <div
-                class="w-10 h-10 bg-gradient-to-br from-tiktokCyan to-tiktok rounded-lg flex items-center justify-center font-bold text-xl">
-                <i class="fa-solid fa-plane-departure text-white"></i>
+                class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shadow-indigo-200">
+                <i class="fa-solid fa-plane-departure"></i>
             </div>
-            <h1 class="text-2xl font-bold tracking-tight">Pre-flight <span class="gradient-text">Check</span></h1>
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tight text-indigo-700">Pre-flight <span
+                        class="text-indigo-500">Check</span></h1>
+                <p class="text-xs text-slate-400 font-semibold tracking-wide">CREATIVE SCORER</p>
+            </div>
         </div>
-        <div class="text-sm text-slate-400">v1.0.0 Alpha</div>
+        <div
+            class="px-4 py-1.5 bg-white rounded-full text-xs font-bold text-indigo-400 shadow-sm border border-indigo-50">
+            v1.0.0 Alpha</div>
     </header>
 
     <main class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         <!-- Left Column: Input Form -->
         <div class="lg:col-span-4 space-y-6">
-            <div class="glass rounded-2xl p-6 shadow-xl">
-                <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-sliders text-tiktokCyan"></i> Campaign Setup
+            <div class="bg-white rounded-3xl p-6 shadow-soft border border-indigo-50/50">
+                <h2 class="text-lg font-bold mb-6 flex items-center gap-2 text-gray-700">
+                    <div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-500">
+                        <i class="fa-solid fa-sliders text-sm"></i>
+                    </div>
+                    Campaign Setup
                 </h2>
 
-                <form id="campaignForm" class="space-y-4">
+                <form id="campaignForm" class="space-y-5">
                     <div>
-                        <label class="block text-sm text-slate-400 mb-1">Industry</label>
+                        <label class="block text-sm font-semibold text-gray-500 mb-2 ml-1">Industry</label>
                         <select name="industry_id"
-                            class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm focus:border-tiktokCyan focus:outline-none focus:ring-1 focus:ring-tiktokCyan transition">
+                            class="w-full bg-slate-50 border border-gray-200 text-gray-700 rounded-xl p-3.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition shadow-sm appearance-none">
                             <option value="FIN">Finance ($750 avg)</option>
                             <option value="ECOMM">E-commerce ($325 avg)</option>
                             <option value="BEAUTY">Beauty ($350 avg)</option>
@@ -119,21 +144,21 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm text-slate-400 mb-1">Target CPA ($)</label>
+                            <label class="block text-sm font-semibold text-gray-500 mb-2 ml-1">Target CPA ($)</label>
                             <input type="number" name="target_cpa" value="50"
-                                class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm focus:border-tiktokCyan focus:outline-none transition">
+                                class="w-full bg-slate-50 border border-gray-200 text-gray-700 rounded-xl p-3.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition shadow-sm">
                         </div>
                         <div>
-                            <label class="block text-sm text-slate-400 mb-1">Budget ($)</label>
+                            <label class="block text-sm font-semibold text-gray-500 mb-2 ml-1">Budget ($)</label>
                             <input type="number" name="budget" value="1000"
-                                class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm focus:border-tiktokCyan focus:outline-none transition">
+                                class="w-full bg-slate-50 border border-gray-200 text-gray-700 rounded-xl p-3.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition shadow-sm">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-sm text-slate-400 mb-1">Country</label>
+                        <label class="block text-sm font-semibold text-gray-500 mb-2 ml-1">Country</label>
                         <select name="country"
-                            class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm focus:border-tiktokCyan focus:outline-none transition">
+                            class="w-full bg-slate-50 border border-gray-200 text-gray-700 rounded-xl p-3.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition shadow-sm">
                             <option value="VN" selected>Vietnam (VN)</option>
                             <option value="US">United States (US)</option>
                             <option value="GB">United Kingdom (UK)</option>
@@ -151,63 +176,65 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm text-slate-400 mb-1">Audience Gender</label>
+                            <label class="block text-sm font-semibold text-gray-500 mb-2 ml-1">Gender</label>
                             <select name="audience_gender"
-                                class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm focus:border-tiktokCyan focus:outline-none transition">
+                                class="w-full bg-slate-50 border border-gray-200 text-gray-700 rounded-xl p-3.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition shadow-sm">
                                 <option value="ALL">All</option>
                                 <option value="MALE">Male</option>
                                 <option value="FEMALE">Female</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm text-slate-400 mb-1">Audience Age</label>
+                            <label class="block text-sm font-semibold text-gray-500 mb-2 ml-1">Age</label>
                             <select name="audience_age"
-                                class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm focus:border-tiktokCyan focus:outline-none transition">
+                                class="w-full bg-slate-50 border border-gray-200 text-gray-700 rounded-xl p-3.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition shadow-sm">
                                 <option value="18-24, 25-34, 35-44, 45-54, 55-64" selected>All Ages</option>
                                 <option value="18-24">18-24</option>
                                 <option value="25-34">25-34</option>
                                 <option value="35-44">35-44</option>
                                 <option value="45-54">45-54</option>
                                 <option value="55-64">55-64</option>
-                                <option value="18-24, 25-34">18-34 (Gen Z + Millennials)</option>
+                                <option value="18-24, 25-34">18-34 (Gen Z)</option>
                                 <option value="35-44, 45-54">35-54 (Gen X)</option>
                             </select>
                         </div>
                     </div>
 
                     <div id="budgetWarning"
-                        class="hidden bg-yellow-500/20 text-yellow-500 p-3 rounded-lg text-xs flex items-center gap-2">
+                        class="hidden bg-pastel-butter/20 text-yellow-600 p-4 rounded-xl text-xs flex items-center gap-3 font-semibold border border-pastel-butter/40">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                         <span>Budget must be at least 50x Target CPA (<span id="minBudgetDisplay"></span>)</span>
                     </div>
 
                     <div>
-                        <label class="block text-sm text-slate-400 mb-1">Landing Page URL</label>
+                        <label class="block text-sm font-semibold text-gray-500 mb-2 ml-1">Landing Page URL</label>
                         <input type="url" name="landing_page_url" placeholder="https://..."
-                            class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm focus:border-tiktokCyan focus:outline-none transition">
+                            class="w-full bg-slate-50 border border-gray-200 text-gray-700 rounded-xl p-3.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition shadow-sm">
                     </div>
 
-                    <div>
-                        <label class="block text-sm text-slate-400 mb-2">Creative Video Source</label>
+                    <div class="pt-2">
+                        <label class="block text-sm font-semibold text-gray-500 mb-3 ml-1">Creative Asset</label>
 
                         <!-- Tabs -->
-                        <div class="flex gap-4 mb-3 border-b border-slate-700 pb-2">
+                        <div class="flex gap-2 p-1 bg-gray-100 rounded-xl mb-4">
                             <button type="button" id="tabUpload"
-                                class="text-sm font-semibold text-tiktokCyan border-b-2 border-tiktokCyan pb-2 px-1 transition">Upload
-                                File</button>
+                                class="flex-1 py-2 rounded-lg text-sm font-bold shadow-sm bg-white text-indigo-600 transition-all">Upload</button>
                             <button type="button" id="tabUrl"
-                                class="text-sm font-semibold text-slate-500 hover:text-white pb-2 px-1 transition">Video
-                                URL</button>
+                                class="flex-1 py-2 rounded-lg text-sm font-semibold text-gray-500 hover:text-gray-700 transition">Video
+                                Link</button>
                         </div>
 
                         <!-- Upload Zone -->
                         <div id="sectionUpload">
                             <div id="dropZone"
-                                class="file-drop-zone rounded-lg p-6 text-center cursor-pointer relative h-32 flex flex-col items-center justify-center">
+                                class="file-drop-zone rounded-2xl p-8 text-center cursor-pointer relative h-40 flex flex-col items-center justify-center border-indigo-100">
                                 <input type="file" name="video_file" id="videoFile" accept="video/*"
                                     class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                                <i class="fa-solid fa-cloud-arrow-up text-2xl text-slate-500 mb-2"></i>
-                                <p class="text-xs text-slate-400" id="fileName">Drag & drop or Click</p>
+                                <div class="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center mb-3">
+                                    <i class="fa-solid fa-cloud-arrow-up text-xl text-indigo-400"></i>
+                                </div>
+                                <p class="text-sm font-bold text-gray-600 mb-1" id="fileName">Click or Drop Video</p>
+                                <p class="text-[10px] text-gray-400 uppercase tracking-wide">MP4, MOV up to 50MB</p>
                             </div>
                         </div>
 
@@ -215,17 +242,17 @@
                         <div id="sectionUrl" class="hidden">
                             <input type="url" name="video_url_input" id="videoUrlInput"
                                 placeholder="https://example.com/video.mp4"
-                                class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm focus:border-tiktokCyan focus:outline-none transition">
-                            <p class="text-[10px] text-slate-500 mt-1">Direct link to video file (MP4/MOV)</p>
+                                class="w-full bg-slate-50 border border-gray-200 text-gray-700 rounded-xl p-3.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition shadow-sm">
+                            <p class="text-[10px] text-gray-400 mt-2 ml-1">Direct link to video file</p>
                         </div>
                     </div>
 
                     <button type="submit"
-                        class="w-full bg-gradient-to-r from-tiktok to-purple-600 hover:from-tiktok/80 hover:to-purple-500 text-white font-bold py-3 rounded-lg shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex justify-center items-center gap-2">
-                        <span id="btnText">Run Analysis</span>
-                        <div id="btnSpinner" class="spinner w-5 h-5 border-2 hidden"></div>
+                        class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 rounded-full shadow-lg shadow-indigo-300 transform hover:-translate-y-0.5 transition-all duration-200 flex justify-center items-center gap-2 mt-4 text-base">
+                        <span id="btnText">Analyze Creative</span>
+                        <div id="btnSpinner" class="spinner hidden border-white/30 border-l-white"></div>
                     </button>
-                    <p id="errorMsg" class="text-red-500 text-xs text-center hidden"></p>
+                    <p id="errorMsg" class="text-pastel-coral text-sm font-semibold text-center hidden mt-2"></p>
                 </form>
             </div>
         </div>
@@ -233,40 +260,43 @@
         <!-- Right Column: Dashboard -->
         <div class="lg:col-span-8 space-y-6">
             <!-- Main Score Card -->
-            <div class="glass rounded-2xl p-8 shadow-xl relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-4 opacity-10">
-                    <i class="fa-solid fa-chart-line text-9xl text-white"></i>
+            <div
+                class="bg-white rounded-3xl p-8 shadow-soft relative overflow-hidden min-h-[400px] flex flex-col justify-center border border-indigo-50/50">
+                <div class="absolute top-0 right-0 p-8 opacity-5">
+                    <i class="fa-solid fa-chart-line text-9xl text-indigo-900"></i>
                 </div>
 
-                <h3 class="text-xl font-bold mb-6">Predictive Performance</h3>
+                <div class="flex flex-col md:flex-row items-center justify-evenly gap-10">
+                    <!-- Traffic Light Circle -->
+                    <div class="relative w-56 h-56 flex items-center justify-center shrink-0">
+                        <!-- Decorative outer rings -->
+                        <div class="absolute inset-0 rounded-full border border-indigo-50 scale-110"></div>
+                        <div class="absolute inset-0 rounded-full border border-indigo-50 scale-125 opacity-50"></div>
 
-                <div class="flex flex-col md:flex-row items-center justify-around gap-8">
-                    <!-- Traffic Light -->
-                    <div class="relative w-48 h-48 flex items-center justify-center">
-                        <div class="absolute inset-0 rounded-full border-4 border-slate-700"></div>
                         <div id="scoreCircle"
-                            class="w-40 h-40 rounded-full bg-slate-800 flex flex-col items-center justify-center shadow-[0_0_30px_rgba(0,0,0,0.5)] transition-all duration-1000">
-                            <span id="scoreValue" class="text-5xl font-bold text-slate-500">--</span>
+                            class="w-48 h-48 rounded-full bg-white flex flex-col items-center justify-center shadow-xl transition-all duration-1000 border-4 border-indigo-50">
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Score</span>
+                            <span id="scoreValue" class="text-6xl font-extrabold text-gray-700">--</span>
                             <span id="scoreLabel"
-                                class="text-sm font-semibold text-slate-400 uppercase tracking-widest mt-1">N/A</span>
+                                class="text-sm font-bold mt-2 px-3 py-1 rounded-full bg-gray-100 text-gray-500">READY</span>
                         </div>
                     </div>
 
                     <!-- Key Stats -->
-                    <div class="grid grid-cols-2 gap-4 w-full max-w-xs">
-                        <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
-                            <div class="text-slate-400 text-xs text-center">Benchmark</div>
-                            <div id="benchmarkVal" class="text-2xl font-bold text-center text-white">--</div>
+                    <div class="grid grid-cols-2 gap-5 w-full max-w-sm">
+                        <div class="bg-cream p-5 rounded-2xl border border-indigo-100 text-center">
+                            <div class="text-indigo-300 text-xs font-bold uppercase tracking-wider mb-1">Benchmark</div>
+                            <div id="benchmarkVal" class="text-3xl font-bold text-indigo-700">--</div>
                         </div>
-                        <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
-                            <div class="text-slate-400 text-xs text-center">DNA Score</div>
-                            <div id="dnaVal" class="text-2xl font-bold text-center text-white">--</div>
+                        <div class="bg-cream p-5 rounded-2xl border border-indigo-100 text-center">
+                            <div class="text-indigo-300 text-xs font-bold uppercase tracking-wider mb-1">DNA Score</div>
+                            <div id="dnaVal" class="text-3xl font-bold text-indigo-700">--</div>
                         </div>
                         <div
-                            class="col-span-2 bg-slate-800/50 p-3 rounded-xl border border-slate-700 flex items-center justify-between px-6">
-                            <span class="text-slate-400 text-xs">Policy Check</span>
-                            <span id="policyVal" class="text-sm font-bold text-slate-500"><i
-                                    class="fa-solid fa-question"></i> Pending</span>
+                            class="col-span-2 bg-cream p-4 rounded-2xl border border-indigo-100 flex items-center justify-between px-6">
+                            <span class="text-gray-500 text-sm font-semibold">Policy Check</span>
+                            <span id="policyVal" class="text-sm font-bold text-gray-400"><i
+                                    class="fa-solid fa-hourglass-half"></i> Pending</span>
                         </div>
                     </div>
                 </div>
@@ -275,51 +305,54 @@
             <!-- Analysis Detail Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Creative Card -->
-                <div class="glass rounded-2xl p-6">
-                    <h4
-                        class="text-sm font-bold text-slate-400 uppercase mb-4 tracking-wider border-b border-slate-700 pb-2">
-                        <i class="fa-solid fa-wand-magic-sparkles text-accent"></i> Creative DNA
+                <div class="bg-white rounded-3xl p-8 shadow-soft border border-indigo-50/50">
+                    <h4 class="text-sm font-bold text-indigo-300 uppercase mb-6 tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-indigo-400"></i> Creative DNA
                     </h4>
-                    <div class="space-y-4">
+                    <div class="space-y-6">
                         <div>
-                            <div class="flex justify-between text-xs mb-1">
+                            <div class="flex justify-between text-sm font-semibold mb-2 text-gray-600">
                                 <span>Hook Score (3s)</span>
-                                <span id="hookVal" class="text-tiktokCyan">--</span>
+                                <span id="hookVal" class="text-indigo-600">--</span>
                             </div>
-                            <div class="w-full bg-slate-800 rounded-full h-2">
-                                <div id="hookBar" class="bg-tiktokCyan h-2 rounded-full transition-all duration-1000"
+                            <div class="w-full bg-gray-100 rounded-full h-3">
+                                <div id="hookBar"
+                                    class="bg-indigo-400 h-3 rounded-full transition-all duration-1000 shadow-[0_2px_10px_rgba(99,102,241,0.4)]"
                                     style="width: 0%"></div>
                             </div>
                         </div>
                         <div>
-                            <div class="flex justify-between text-xs mb-1">
+                            <div class="flex justify-between text-sm font-semibold mb-2 text-gray-600">
                                 <span>Pacing Score</span>
-                                <span id="pacingVal" class="text-purple-400">--</span>
+                                <span id="pacingVal" class="text-purple-500">--</span>
                             </div>
-                            <div class="w-full bg-slate-800 rounded-full h-2">
-                                <div id="pacingBar" class="bg-purple-400 h-2 rounded-full transition-all duration-1000"
+                            <div class="w-full bg-gray-100 rounded-full h-3">
+                                <div id="pacingBar"
+                                    class="bg-purple-400 h-3 rounded-full transition-all duration-1000 shadow-[0_2px_10px_rgba(192,132,252,0.4)]"
                                     style="width: 0%"></div>
                             </div>
                         </div>
-                        <div class="flex justify-between items-center text-xs pt-2">
-                            <span>Safe Zone Adherence</span>
-                            <span id="safeZoneVal" class="px-2 py-1 rounded bg-slate-800 text-slate-400">Unknown</span>
+                        <div class="flex justify-between items-center text-sm pt-2">
+                            <span class="text-gray-500 font-medium">Safe Zone</span>
+                            <span id="safeZoneVal"
+                                class="px-3 py-1 rounded-full bg-gray-100 text-gray-400 text-xs font-bold">Unknown</span>
                         </div>
-                        <div class="flex justify-between items-center text-xs">
-                            <span>Duration</span>
-                            <span id="durationVal" class="text-slate-300">--s</span>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-500 font-medium">Duration</span>
+                            <span id="durationVal" class="text-gray-700 font-bold">--s</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Recommendation Card -->
-                <div class="glass rounded-2xl p-6">
+                <div class="bg-white rounded-3xl p-8 shadow-soft border border-indigo-50/50">
                     <h4
-                        class="text-sm font-bold text-slate-400 uppercase mb-4 tracking-wider border-b border-slate-700 pb-2">
-                        <i class="fa-solid fa-clipboard-check text-green-400"></i> Assessment
+                        class="text-sm font-bold text-pastel-mint uppercase mb-6 tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-clipboard-check"></i> Assessment
                     </h4>
-                    <div id="assessmentText" class="text-sm text-slate-300 leading-relaxed">
-                        Ready to analyze. Please upload a video and configure campaign settings.
+                    <div id="assessmentText" class="text-base text-gray-600 leading-relaxed font-medium">
+                        Ready to analyze. Please upload a video and configure campaign settings to begin the pre-flight
+                        check.
                     </div>
                 </div>
             </div>
@@ -340,23 +373,25 @@
         const sectionUrl = document.getElementById('sectionUrl');
         const videoUrlInput = document.getElementById('videoUrlInput');
 
+        // Styles for active/inactive tabs
+        const activeFullClass = "bg-white text-indigo-600 shadow-sm";
+        const inactiveFullClass = "text-gray-500 hover:text-gray-700";
+
         tabUpload.addEventListener('click', () => {
-            tabUpload.className = "text-sm font-semibold text-tiktokCyan border-b-2 border-tiktokCyan pb-2 px-1 transition";
-            tabUrl.className = "text-sm font-semibold text-slate-500 hover:text-white pb-2 px-1 transition";
+            tabUpload.className = "flex-1 py-2 rounded-lg text-sm font-bold transition-all " + activeFullClass;
+            tabUrl.className = "flex-1 py-2 rounded-lg text-sm font-semibold transition-all " + inactiveFullClass;
             sectionUpload.classList.remove('hidden');
             sectionUrl.classList.add('hidden');
-            // Clear URL when switching to Upload
             videoUrlInput.value = '';
         });
 
         tabUrl.addEventListener('click', () => {
-            tabUrl.className = "text-sm font-semibold text-tiktokCyan border-b-2 border-tiktokCyan pb-2 px-1 transition";
-            tabUpload.className = "text-sm font-semibold text-slate-500 hover:text-white pb-2 px-1 transition";
+            tabUrl.className = "flex-1 py-2 rounded-lg text-sm font-bold transition-all " + activeFullClass;
+            tabUpload.className = "flex-1 py-2 rounded-lg text-sm font-semibold transition-all " + inactiveFullClass;
             sectionUrl.classList.remove('hidden');
             sectionUpload.classList.add('hidden');
-            // Reset File input (visuals) when switching to URL
             fileInput.value = '';
-            fileNameDisplay.innerText = "Drag & drop or Click";
+            fileNameDisplay.innerText = "Click or Drop Video";
         });
 
         // Drag & Drop Visuals
@@ -380,7 +415,6 @@
             const files = dt.files;
             fileInput.files = files;
             if (files.length) fileNameDisplay.innerText = files[0].name;
-            // Auto switch tab if dropped
             tabUpload.click();
         }
 
@@ -412,17 +446,15 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // Validate Logic
             if (!validateBudget()) return;
 
-            // Validate Video Source
             if (!fileInput.files.length && !videoUrlInput.value.trim()) {
-                document.getElementById('errorMsg').innerText = "Please upload a video OR provide a video URL.";
-                document.getElementById('errorMsg').classList.remove('hidden');
+                const err = document.getElementById('errorMsg');
+                err.innerText = "Please upload a video OR provide a video URL.";
+                err.classList.remove('hidden');
                 return;
             }
 
-            // UI Loading
             const btnText = document.getElementById('btnText');
             const btnSpinner = document.getElementById('btnSpinner');
             const errorMsg = document.getElementById('errorMsg');
@@ -433,9 +465,6 @@
 
             try {
                 const formData = new FormData(form);
-
-                // Legacy check removed here to allow URL-only submission
-
                 const response = await fetch('/api/analyze', {
                     method: 'POST',
                     body: formData
@@ -460,22 +489,35 @@
         });
 
         function updateDashboard(data) {
-            // Colors
+            // Colors from Palette
+            // Green -> Mint (#34D399)
+            // Yellow -> Butter (#FCD34D)
+            // Red -> Coral (#F87171)
             const colors = {
-                'Green': '#10b981', // emerald-500
-                'Yellow': '#eab308', // yellow-500
-                'Red': '#ef4444' // red-500
+                'Green': '#34D399',
+                'Yellow': '#FCD34D',
+                'Red': '#F87171'
             };
-            const ratingColor = colors[data.final_rating] || '#64748b';
+            // Text color for label (if yellow, need darker text, others white)
+            const textColors = {
+                'Green': '#FFFFFF',
+                'Yellow': '#78350f', // amber-900
+                'Red': '#FFFFFF'
+            };
+
+            const ratingColor = colors[data.final_rating] || '#94a3b8';
+            const ratingTextColor = textColors[data.final_rating] || '#FFFFFF';
 
             // Main Score
             document.getElementById('scoreValue').innerText = Math.round(data.predictive_score);
-            document.getElementById('scoreLabel').innerText = data.final_rating;
-            document.getElementById('scoreLabel').style.color = ratingColor;
+            const scoreLabel = document.getElementById('scoreLabel');
+            scoreLabel.innerText = data.final_rating;
+            scoreLabel.style.backgroundColor = ratingColor;
+            scoreLabel.style.color = ratingTextColor;
 
             const circle = document.getElementById('scoreCircle');
-            circle.style.boxShadow = `0 0 40px ${ratingColor}66`; // 40% opacity
-            circle.style.border = `2px solid ${ratingColor}`;
+            circle.style.borderColor = ratingColor;
+            circle.style.boxShadow = `0 10px 30px -5px ${ratingColor}66`; // soft glow
 
             // Metrics
             document.getElementById('benchmarkVal').innerText = Math.round(data.benchmark_score);
@@ -484,11 +526,11 @@
             // Policy
             const policyEl = document.getElementById('policyVal');
             if (data.policy_check.is_safe) {
-                policyEl.innerHTML = '<i class="fa-solid fa-shield-check text-green-500 cursor-help" title="Input safe"></i> Safe';
-                policyEl.className = 'text-sm font-bold text-green-400';
+                policyEl.innerHTML = '<i class="fa-solid fa-shield-check text-pastel-mint"></i> Safe';
+                policyEl.className = 'text-sm font-bold text-gray-700';
             } else {
-                policyEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-500"></i> ${data.policy_check.reason || 'Unsafe'}`;
-                policyEl.className = 'text-sm font-bold text-red-500';
+                policyEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-pastel-coral"></i> ${data.policy_check.reason || 'Unsafe'}`;
+                policyEl.className = 'text-sm font-bold text-pastel-coral';
             }
 
             // Creative
@@ -503,15 +545,15 @@
             const sz = document.getElementById('safeZoneVal');
             if (data.creative_metrics.safe_zone) {
                 sz.innerText = "Compliant";
-                sz.className = "px-2 py-1 rounded bg-green-500/20 text-green-400 font-bold";
+                sz.className = "px-3 py-1 rounded-full bg-green-50 text-green-600 text-xs font-bold border border-green-100";
             } else {
                 sz.innerText = "X Violation";
-                sz.className = "px-2 py-1 rounded bg-red-500/20 text-red-400 font-bold";
+                sz.className = "px-3 py-1 rounded-full bg-red-50 text-red-500 text-xs font-bold border border-red-100";
             }
 
             // Assessment
-            document.getElementById('assessmentText').innerText = data.message +
-                (data.policy_check.is_safe ? " Financial benchmarking looks " + (data.benchmark_score > 80 ? "great." : "risky.") : " Policy violation detected.");
+            document.getElementById('assessmentText').innerHTML = `<span class="font-bold text-gray-800">${data.message}</span> ` +
+                (data.policy_check.is_safe ? " Financial benchmarking is " + (data.benchmark_score > 80 ? "<span class='text-pastel-mint font-bold'>strong.</span>" : "<span class='text-pastel-butter font-bold'>moderate.</span>") : " <span class='text-pastel-coral font-bold'>Policy constraints found.</span>");
         }
     </script>
 </body>

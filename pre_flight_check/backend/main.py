@@ -64,43 +64,37 @@ async def analyze_campaign(
     video_file: Optional[UploadFile] = File(None),
     video_url_input: Optional[str] = Form(None)
 ):
+    import asyncio
     video_url = ""
+    has_video = False
     
-    # Logic: Prioritize URL input if provided
+    # 1. Determine Input Types
     if video_url_input and video_url_input.strip():
         video_url = video_url_input.strip()
+        has_video = True
     elif video_file:
-        # 1. Save Video File Locally (or to TMP)
+        has_video = True
         file_id = str(uuid.uuid4())
         file_extension = video_file.filename.split(".")[-1]
-        
-        # Use configurable upload path
         save_path = os.path.join(UPLOAD_DIR, f"{file_id}.{file_extension}")
-        
         try:
             with open(save_path, "wb") as buffer:
                 shutil.copyfileobj(video_file.file, buffer)
             
-            # Construct "Public" URL
-            # NOTE: On Vercel, /tmp is NOT publicly accessible via URL.
-            # We must warn the user or use a cloud storage.
-            # For MVP, we pass a fake URL if on Vercel, assuming n8n can't reach it anyway unless we upload.
             if os.getenv("VERCEL"):
-                # Workaround: Ensure n8n client handles local file path if possible? No.
-                # Warning: Vercel Uploads won't work with external n8n.
                 video_url = f"file://{save_path}" 
             else:
                 video_url = f"http://localhost:8000/static/uploads/{file_id}.{file_extension}"
-                
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"File save error: {str(e)}")
-    else:
-        raise HTTPException(status_code=400, detail="Please provide either a video file or a video URL.")
+
+    if not has_video and not landing_page_url:
+        raise HTTPException(status_code=400, detail="Please provide either a Video or a Landing Page URL.")
 
     # 2. Benchmark Calc
     benchmark_score = BenchmarkService.calculate_benchmark_score(target_cpa, industry_id)
 
-    # 3. Call n8n for Analysis
+    # 3. Parallel Analysis (Video + LP)
     n8n_client = N8nClient()
     campaign_context = {
         "industry": industry_id,
@@ -111,18 +105,54 @@ async def analyze_campaign(
         "audience_age": audience_age,
         "audience_gender": audience_gender
     }
+
+    tasks = []
+    # Task A: Video
+    if has_video:
+        tasks.append(n8n_client.analyze_video(video_url, campaign_context))
+    else:
+        # Dummy task returning None if no video
+        async def no_video(): return None
+        tasks.append(no_video())
+
+    # Task B: Landing Page
+    if landing_page_url:
+        tasks.append(n8n_client.analyze_landing_page(landing_page_url))
+    else:
+        async def no_lp(): return None
+        tasks.append(no_lp())
+
+    # Execute
+    results = await asyncio.gather(*tasks)
+    video_result, lp_result = results[0], results[1]
+
+    # 4. Aggregation Logic
+    video_policy_safe = True
+    video_policy_reason = ""
+    creative_data = {}
+
+    if video_result:
+        p = video_result.get("policy", {})
+        video_policy_safe = p.get("is_safe", False)
+        video_policy_reason = p.get("reason", "")
+        creative_data = video_result.get("creative", {})
     
-    n8n_result = await n8n_client.analyze_creative(video_url, campaign_context)
+    lp_policy_safe = True
+    lp_policy_reason = ""
     
-    # 4. Parse n8n Results
-    policy_data = n8n_result.get("policy", {})
-    creative_data = n8n_result.get("creative", {})
+    if lp_result:
+        p = lp_result.get("policy", {})
+        lp_policy_safe = p.get("is_safe", False)
+        lp_policy_reason = p.get("reason", "")
+
+    # Combine Policy
+    final_is_safe = video_policy_safe and lp_policy_safe
+    final_reasons = []
+    if not video_policy_safe: final_reasons.append(f"Video: {video_policy_reason}")
+    if not lp_policy_safe: final_reasons.append(f"LP: {lp_policy_reason}")
     
-    policy_res = PolicyResult(
-        is_safe=policy_data.get("is_safe", False),
-        reason=policy_data.get("reason", "Unknown Error")
-    )
-    
+    # Creative Metrics (Only if video exists, else 0/False)
+    has_creative_metrics = bool(creative_data)
     creative_res = CreativeMetrics(
         hook_score=float(creative_data.get("hook", 0)),
         pacing_score=float(creative_data.get("pacing", 0)),
@@ -131,26 +161,32 @@ async def analyze_campaign(
     )
 
     # 5. Final Scoring
-    dna_score = ScoringEngine.calculate_dna_score(creative_res)
-    predictive_score = 0.0
+    dna_score = 0.0
+    if has_creative_metrics:
+        dna_score = ScoringEngine.calculate_dna_score(creative_res)
     
-    if policy_res.is_safe:
-        # P = 1
+    predictive_score = 0.0
+    if final_is_safe:
+        # If no video, DNA score is 0, so Score is just Benchmark * 0.3? 
+        # Or maybe normalized?
+        # Requirement: PredictiveScore = P * ((D*0.7)+(B*0.3))
+        # If D=0 (no video), max score is 30. That's fair for "LP only".
         predictive_score = ScoringEngine.calculate_final_score(benchmark_score, dna_score)
     else:
-        # P = 0, Score is 0 (or very low)
         predictive_score = 0.0
 
-    final_rating = ScoringEngine.get_rating(predictive_score, policy_res.is_safe)
+    final_rating = ScoringEngine.get_rating(predictive_score, final_is_safe)
     
+    reason_str = "; ".join(final_reasons) if final_reasons else "Policy Safe"
+
     return AnalysisResult(
         benchmark_score=benchmark_score,
-        policy_check=policy_res,
+        policy_check=PolicyResult(is_safe=final_is_safe, reason=reason_str),
         creative_metrics=creative_res,
         dna_score=dna_score,
         predictive_score=predictive_score,
         final_rating=final_rating,
-        message=f"Campaign analyzed. Rating: {final_rating}"
+        message=f"Analysis Complete. {reason_str}"
     )
 
 @app.post("/api/webhook/callback")

@@ -1,6 +1,9 @@
 import httpx
 import os
+from dotenv import load_dotenv
 from models import CampaignInput, AnalysisResult, PolicyResult, CreativeMetrics, IndustryConfig
+
+load_dotenv()
 
 # Industry Average CPA Benchmarks (Estimated 2025)
 INDUSTRY_BENCHMARKS = {
@@ -24,22 +27,23 @@ class BenchmarkService:
 
 class N8nClient:
     def __init__(self):
-        self.webhook_url = os.getenv("N8N_WEBHOOK_URL")
+        self.video_webhook_url = os.getenv("N8N_VIDEO_WEBHOOK_URL")
+        self.lp_webhook_url = os.getenv("N8N_LP_WEBHOOK_URL")
 
-    async def analyze_creative(self, video_url: str, campaign_context: dict) -> dict:
-        if not self.webhook_url:
-            # Return Mock Data if no Webhook URL is set
-            print("WARNING: N8N_WEBHOOK_URL not set. Using mock data.")
+    async def analyze_video(self, video_url: str, campaign_context: dict) -> dict:
+        if not self.video_webhook_url:
+            print("WARNING: N8N_VIDEO_WEBHOOK_URL not set. Using mock data.")
             return {
-                "policy": {"is_safe": True, "reason": "Mock Policy Check Passed"},
+                "policy": {"is_safe": True, "reason": "[MOCK-VIDEO] Policy Check Passed"},
                 "creative": {
-                    "hook": 85,
-                    "pacing": 70,
+                    "hook": 99.9,
+                    "pacing": 99.9,
                     "safe_zone": True,
-                    "duration": 15
+                    "duration": 99.9
                 }
             }
 
+        # Simplified Payload for Video
         # Helper to safely extract Video ID
         def extract_video_id(url: str) -> str:
             from urllib.parse import urlparse, parse_qs
@@ -62,12 +66,10 @@ class N8nClient:
         # Audience Age mapping
         raw_age = campaign_context.get("audience_age", "")
         if raw_age:
-            # Simple parser: "18-24, 25-34" -> ["AGE_18_24", "AGE_25_34"]
-            # Remove spaces, split by comma, prepend AGE_ and replace - with _
             age_groups = [f"AGE_{a.strip().replace('-', '_')}" for a in raw_age.split(",") if a.strip()]
         else:
             age_groups = ["AGE_18_24", "AGE_25_34"] # Default fallback 
-        
+
         payload = {
             "ad_id": "mock_ad_" + video_id,
             "landing_page_url": campaign_context.get("lp", ""),
@@ -87,16 +89,58 @@ class N8nClient:
 
         async with httpx.AsyncClient() as client:
             try:
-                # Expecting n8n to return JSON with 'policy' and 'creative' keys
-                response = await client.post(self.webhook_url, json=payload, timeout=60.0)
+                response = await client.post(self.video_webhook_url, json=payload, timeout=60.0)
                 response.raise_for_status()
                 return response.json()
             except Exception as e:
-                print(f"Error calling n8n: {e}")
-                # Fallback on error (or we could raise HTTP exception)
+                print(f"Error calling n8n Video: {e}")
                 return {
-                    "policy": {"is_safe": False, "reason": f"Analysis Failed: {str(e)}"},
+                    "policy": {"is_safe": False, "reason": f"Video Analysis Failed: {str(e)}"},
                     "creative": {"hook": 0, "pacing": 0, "safe_zone": False, "duration": 0}
+                }
+
+    async def analyze_landing_page(self, landing_page_url: str) -> dict:
+        if not self.lp_webhook_url:
+            print("WARNING: N8N_LP_WEBHOOK_URL not set. Using mock data.")
+            return {
+                "policy": {"is_safe": True, "reason": "[MOCK-LP] Landing Page Safe"}
+            }
+
+        payload = {
+            "landingPages": [landing_page_url]
+        }
+
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.post(self.lp_webhook_url, json=payload, timeout=30.0)
+                response.raise_for_status()
+                data = response.json()
+                
+                # Parsing logic for real n8n response
+                # Expected format: { "landing_pages_review": [ { "AnalysisResult": "Non-Compliant", ... } ] }
+                reviews = data.get("landing_pages_review", [])
+                if reviews and isinstance(reviews, list) and len(reviews) > 0:
+                    review = reviews[0]
+                    status = review.get("AnalysisResult", "Unknown")
+                    is_compliant = (status.lower() == "compliant")
+                    reason = review.get("ViolationDetails", review.get("Recommendation", "Policy Violation"))
+                    
+                    return {
+                        "policy": {
+                            "is_safe": is_compliant,
+                            "reason": reason if not is_compliant else "Landing Page Compliant"
+                        }
+                    }
+                
+                # Fallback if structure doesn't match
+                return data if "policy" in data else {
+                    "policy": {"is_safe": False, "reason": "Invalid response format from Policy Check"}
+                }
+
+            except Exception as e:
+                print(f"Error calling n8n LP: {e}")
+                return {
+                    "policy": {"is_safe": False, "reason": f"LP Analysis Failed: {str(e)}"}
                 }
 
 class ScoringEngine:

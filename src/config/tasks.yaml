@@ -1,47 +1,54 @@
-task1:
+sprint1_planning:
   description: >
-    Phân tích đề bài từ User: "{user_request}" và liệt kê chi tiết các tính năng cần có.
+    **SPRINT 1 PLANNING**: Phân tích yêu cầu từ User: "{user_request}".
+    Xác định Backlog cho Sprint 1 (MVP) bao gồm các tính năng cốt lõi.
+    Loại bỏ hoặc dời các tính năng chưa cần thiết sang Sprint sau.
   expected_output: >
-    File PRD.md và User_Stories.json
-  output_file: 'PRD.md'
+    File Sprint1_Backlog.md và User_Stories.json
+  output_file: 'Sprint1_Backlog.md'
   agent: ba
 
-task2:
+sprint1_design:
   description: >
-    Dựa vào PRD để mô tả cấu trúc trang và các component cần thiết.
+    **SPRINT 1 DESIGN**: Thiết kế giao diện và trải nghiệm (UI/UX) cho các tính năng trong Sprint 1.
+    Tạo wireframe hoặc mô tả chi tiết component.
   expected_output: >
-    File Design_Spec.md
-  output_file: 'Design_Spec.md'
+    File Sprint1_Design_Spec.md
+  output_file: 'Sprint1_Design_Spec.md'
   agent: ui_ux
 
-task3:
+sprint1_backend:
   description: >
-    Thiết kế sơ đồ Database và viết mã nguồn cho các API.
+    **SPRINT 1 DEVELOPMENT (BE)**: Phát triển API và Database cho các tính năng Sprint 1.
+    Đảm bảo API hoạt động đúng theo Design Spec.
   expected_output: >
-    Mã nguồn Backend & Swagger_API.yaml
-  output_file: 'Backend_Architecture.md'
+    Mã nguồn Backend Sprint 1 & API Documentation.
+  output_file: 'Sprint1_Backend_Dev.md'
   agent: senior_be
 
-task4:
+sprint1_frontend:
   description: >
-    Xây dựng UI dựa trên Design Spec và gọi API từ BE.
+    **SPRINT 1 DEVELOPMENT (FE)**: Implement giao diện người dùng cho Sprint 1.
+    Tích hợp API từ Backend.
   expected_output: >
-    Mã nguồn Frontend hoàn chỉnh
-  output_file: 'Frontend_Architecture.md'
+    Mã nguồn Frontend Sprint 1 hoàn chỉnh.
+  output_file: 'Sprint1_Frontend_Dev.md'
   agent: senior_fe
 
-task5:
+sprint1_qa:
   description: >
-    Kiểm tra chéo toàn bộ code và thực hiện Unit Test.
+    **SPRINT 1 TESTING**: Kiểm thử các tính năng đã phát triển trong Sprint 1.
+    Thực hiện Unit Test và Integration Test.
   expected_output: >
-    Bug_Report.md và Test_Suite.py
-  output_file: 'QA_Report.md'
+    Sprint1_Test_Report.md
+  output_file: 'Sprint1_QA_Report.md'
   agent: qa
 
-task6:
+sprint1_release:
   description: >
-    Viết file cấu hình Docker và script triển khai.
+    **SPRINT 1 RELEASE**: Đóng gói và chuẩn bị deployment cho Sprint 1.
+    Viết Release Notes.
   expected_output: >
-    Dockerfile, docker-compose.yml
-  output_file: 'DevOps_Config.md'
+    Release_Notes_Sprint1.md và Config Deploy.
+  output_file: 'Sprint1_Release_Notes.md'
   agent: devops

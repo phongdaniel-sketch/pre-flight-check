@@ -17,6 +17,14 @@
 - [ ] **TC-009**: Test with real n8n Webhook (Set N8N_WEBHOOK_URL).
 - [ ] **TC-010**: Verify big file upload limits (>50MB).
 
-## 3. UI/UX Testing
-- [ ] **TC-011**: Check Responsive Design on Mobile/Tablet.
-- [ ] **TC-012**: Verify Glassmorphism effects are visible.
+## 3. UI/UX Testing (Indigo Cloud Design System)
+- [ ] **TC-011**: Verify "Indigo Cloud" Theme application:
+    - Background: Cream `#FDFBF7`.
+    - Primary Font: `Nunito`.
+    - Buttons: Pill-shaped, Indigo Gradient/Solid.
+- [ ] **TC-012**: Verify Status Colors (Pastel Palette):
+    - Green -> Mint `#34D399`
+    - Yellow -> Butter `#FCD34D`
+    - Red -> Coral `#F87171`
+- [ ] **TC-013**: Check Responsive Grid Layout (Stack on Mobile, Splits on Desktop).
+- [ ] **TC-014**: Verify soft shadow effects (`shadow-soft`) on Cards.
