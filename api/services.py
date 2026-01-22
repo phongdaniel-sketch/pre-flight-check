@@ -115,6 +115,7 @@ class N8nClient:
                 response = await client.post(self.lp_webhook_url, json=payload, timeout=30.0)
                 response.raise_for_status()
                 data = response.json()
+                print(f"[DEBUG] N8N Raw Response: {data}")
                 
                 # Parsing logic for real n8n response
                 # Expected format: { "landing_pages_review": [ { "AnalysisResult": "Non-Compliant", ... } ] }
