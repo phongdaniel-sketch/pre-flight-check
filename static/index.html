@@ -448,9 +448,13 @@
 
             if (!validateBudget()) return;
 
-            if (!fileInput.files.length && !videoUrlInput.value.trim()) {
+            const lpInput = document.querySelector('input[name="landing_page_url"]');
+            const hasVideo = fileInput.files.length || videoUrlInput.value.trim();
+            const hasLP = lpInput.value.trim();
+
+            if (!hasVideo && !hasLP) {
                 const err = document.getElementById('errorMsg');
-                err.innerText = "Please upload a video OR provide a video URL.";
+                err.innerText = "Please provide either a Video OR a Landing Page URL.";
                 err.classList.remove('hidden');
                 return;
             }
