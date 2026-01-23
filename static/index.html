@@ -542,8 +542,15 @@
                 policyEl.innerHTML = '<i class="fa-solid fa-shield-check text-pastel-mint"></i> Safe';
                 policyEl.className = 'text-sm font-bold text-gray-700';
             } else {
-                policyEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-pastel-coral"></i> ${data.policy_check.reason || 'Unsafe'}`;
-                policyEl.className = 'text-sm font-bold text-pastel-coral';
+                const reasons = (data.policy_check.reason || 'Unsafe').split('; ');
+                const formattedReasons = reasons.map(r => {
+                    if (r.startsWith('Video:')) return `<div><span class="font-bold text-indigo-500">Video Violation:</span> ${r.replace('Video:', '')}</div>`;
+                    if (r.startsWith('LP:')) return `<div><span class="font-bold text-indigo-500">Landing Page Violation:</span> ${r.replace('LP:', '')}</div>`;
+                    return `<div>${r}</div>`;
+                }).join('<div class="h-1"></div>'); // Spacer
+
+                policyEl.innerHTML = `<div class="flex flex-col gap-1"><div class="flex items-center gap-2 mb-1"><i class="fa-solid fa-triangle-exclamation text-pastel-coral"></i> <span class="uppercase font-bold text-xs text-pastel-coral">Policy Warning</span></div>${formattedReasons}</div>`;
+                policyEl.className = 'text-xs text-gray-600 font-medium text-left';
             }
 
             // Creative
