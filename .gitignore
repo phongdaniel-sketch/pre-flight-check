@@ -15,6 +15,9 @@ _vercel/
 .DS_Store
 Thumbs.db
 
+# Dependencies
+node_modules/
+
 # Project Agents
 Pre-flight check/backend/static/uploads/
 static/uploads/

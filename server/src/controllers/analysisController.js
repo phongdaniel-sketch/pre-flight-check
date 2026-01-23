@@ -17,6 +17,11 @@ export class AnalysisController {
                 landing_page_url, video_url_input
             } = req.body;
 
+            // Basic Validation
+            if (!industry_id || !target_cpa || !budget) {
+                return res.status(422).json({ detail: "Missing required fields (industry_id, target_cpa, budget)" });
+            }
+
             const videoFile = req.file;
             let videoUrl = video_url_input ? video_url_input.trim() : "";
             let localVideoPath = null;
