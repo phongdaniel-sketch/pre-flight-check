@@ -290,7 +290,7 @@
                             <div class="text-indigo-300 text-xs font-bold uppercase tracking-wider mb-1">DNA Score</div>
                             <div id="dnaVal" class="text-3xl font-bold text-indigo-700">--</div>
                         </div>
-                        <div
+                        <div id="policyContainer"
                             class="col-span-2 bg-cream p-4 rounded-2xl border border-indigo-100 flex items-center justify-between px-6">
                             <span class="text-gray-500 text-sm font-semibold">Policy Check</span>
                             <span id="policyVal" class="text-sm font-bold text-gray-400"><i
@@ -536,22 +536,30 @@
             document.getElementById('benchmarkVal').innerText = Math.round(data.benchmark_score);
             document.getElementById('dnaVal').innerText = data.dna_score.toFixed(1);
 
-            // Policy
-            const policyEl = document.getElementById('policyVal');
-            if (data.policy_check.is_safe) {
-                policyEl.innerHTML = '<i class="fa-solid fa-shield-check text-pastel-mint"></i> Safe';
-                policyEl.className = 'text-sm font-bold text-gray-700';
-            } else {
-                const reasons = (data.policy_check.reason || 'Unsafe').split('; ');
-                const formattedReasons = reasons.map(r => {
-                    if (r.startsWith('Video:')) return `<div><span class="font-bold text-indigo-500">Video Violation:</span> ${r.replace('Video:', '')}</div>`;
-                    if (r.startsWith('LP:')) return `<div><span class="font-bold text-indigo-500">Landing Page Violation:</span> ${r.replace('LP:', '')}</div>`;
-                    return `<div>${r}</div>`;
-                }).join('<div class="h-1"></div>'); // Spacer
+// Policy
+const policyEl = document.getElementById('policyVal');
+const policyContainer = document.getElementById('policyContainer');
 
-                policyEl.innerHTML = `<div class="flex flex-col gap-1"><div class="flex items-center gap-2 mb-1"><i class="fa-solid fa-triangle-exclamation text-pastel-coral"></i> <span class="uppercase font-bold text-xs text-pastel-coral">Policy Warning</span></div>${formattedReasons}</div>`;
-                policyEl.className = 'text-xs text-gray-600 font-medium text-left';
-            }
+if (data.policy_check.is_safe) {
+    // Reset layout for safe state
+    if (policyContainer) policyContainer.className = "col-span-2 bg-cream p-4 rounded-2xl border border-indigo-100 flex items-center justify-between px-6";
+    policyEl.innerHTML = '<i class="fa-solid fa-shield-check text-pastel-mint"></i> Safe';
+    policyEl.className = 'text-sm font-bold text-gray-700';
+} else {
+    // Stack layout for error details
+    if (policyContainer) policyContainer.className = "col-span-2 bg-cream p-5 rounded-2xl border border-indigo-100 flex flex-col gap-3 px-6";
+
+    const reasons = (data.policy_check.reason || 'Unsafe').split('; ');
+    const formattedReasons = reasons.map(r => {
+        if (r.startsWith('Video:')) return `<div><span class="font-bold text-indigo-500">Video Violation:</span> ${r.replace('Video:', '')}</div>`;
+        if (r.startsWith('LP:')) return `<div><span class="font-bold text-indigo-500">Landing Page Violation:</span> ${r.replace('LP:', '')}</div>`;
+        return `<div>${r}</div>`;
+    }).join('<div class="h-1"></div>'); // Spacer
+
+    policyEl.innerHTML = `<div class="flex flex-col gap-1 w-full"><div class="flex items-center gap-2 mb-1"><i class="fa-solid fa-triangle-exclamation text-pastel-coral"></i> <span class="uppercase font-bold text-xs text-pastel-coral">Policy Warning</span></div>${formattedReasons}</div>`;
+    policyEl.className = 'text-xs text-gray-600 font-medium text-left w-full';
+}
+
 
             // Creative
             document.getElementById('hookVal').innerText = data.creative_metrics.hook_score + '/100';
