@@ -99,7 +99,7 @@ const industries = [
   <div class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-50">
     <div class="flex items-center gap-2 mb-6">
       <i class="fa-solid fa-sliders text-indigo-500"></i>
-      <h2 class="font-bold text-gray-800">Campaign Setup</h2>
+      <h2 class="font-bold text-gray-800">AI Score Analysis</h2>
     </div>
 
     <form @submit.prevent="submitForm" class="space-y-5">
