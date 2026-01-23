@@ -3,6 +3,24 @@ import { ref } from 'vue';
 import CampaignForm from './components/CampaignForm.vue';
 import Dashboard from './components/Dashboard.vue';
 
+const sampleData = {
+  predictive_score: 85.0,
+  final_rating: 'Green',
+  benchmark_score: 78.5,
+  dna_score: 92.3,
+  message: 'Policy Safe',
+  policy_check: {
+    is_safe: true,
+    reason: 'Compliant'
+  },
+  creative_metrics: {
+    hook_score: 88,
+    pacing_score: 75,
+    safe_zone: true,
+    duration_seconds: 15
+  }
+};
+
 const analysisData = ref(null);
 const isLoading = ref(false);
 const errorMsg = ref('');
@@ -10,6 +28,7 @@ const errorMsg = ref('');
 const handleAnalysisStart = () => {
   isLoading.value = true;
   errorMsg.value = '';
+  // analysisData.value = null; // Keep sample data visible or clear it? Clearning it shows loading state better if we handle loading in App.vue
 };
 
 const handleAnalysisSuccess = (data) => {
@@ -62,15 +81,21 @@ const resetAnalysis = () => {
         </div>
 
         <!-- Right Column: Dashboard or Placeholder -->
-        <div class="lg:col-span-8">
+        <div class="lg:col-span-8 relative">
+          <!-- Real Data -->
           <Dashboard v-if="analysisData" :data="analysisData" />
           
-          <div v-else class="h-full min-h-[400px] border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-400 bg-white/50">
-            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 text-gray-300">
-              <i class="fa-solid fa-chart-pie text-2xl"></i>
-            </div>
-            <p class="font-medium">Ready for Analysis</p>
-            <p class="text-sm mt-1">Fill out the campaign details to begin.</p>
+          <!-- Sample Data / Empty State -->
+          <div v-else class="relative">
+             <div class="absolute inset-0 z-10 bg-white/60 backdrop-blur-[2px] rounded-3xl flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-indigo-100/50">
+                <div class="bg-white p-4 rounded-full shadow-lg mb-4">
+                   <i class="fa-solid fa-chart-pie text-3xl text-indigo-600 animate-pulse"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Ready for Analysis</h3>
+                <p class="text-gray-500 max-w-sm mx-auto">Fill out the campaign details on the left to generate your custom AI analysis like the example below.</p>
+             </div>
+             <!-- Render Dashboard with Sample Data (Blurred BG) -->
+             <Dashboard :data="sampleData" class="opacity-50 pointer-events-none filter blur-sm select-none" />
           </div>
         </div>
 
