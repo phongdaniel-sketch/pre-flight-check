@@ -195,6 +195,41 @@ const gaugeColorClass = computed(() => {
        </div>
     </div>
 
+    <!-- Assessment -->
+    <div class="bg-indigo-50/30 p-6 rounded-2xl border border-indigo-100">
+         <div class="flex items-center gap-2 mb-4">
+            <i class="fa-solid fa-clipboard-check text-indigo-600"></i>
+            <h3 class="font-bold text-indigo-900 uppercase tracking-widest text-xs">Assessment</h3>
+        </div>
+        
+        <div class="space-y-4">
+             <div v-for="(point, idx) in assessmentPoints" :key="idx">
+                <div v-if="point.title" class="mb-2">
+                    <span class="font-bold text-indigo-600 block mb-1 text-base">{{ point.title }}</span>
+                    
+                     <div v-if="point.details" class="bg-indigo-50 p-4 rounded-xl border border-indigo-100 mt-2">
+                         <span class="inline-block font-bold text-indigo-700 text-[10px] uppercase tracking-wide px-2 py-0.5 bg-white rounded border border-indigo-200 mb-2 shadow-sm">Flagged for Review</span>
+                         <div class="text-gray-700 leading-relaxed text-sm">{{ point.details }}</div>
+                     </div>
+                     <span v-else class="text-sm text-gray-600">{{ point.content }}</span>
+                </div>
+                <div v-else class="text-sm text-gray-600 mb-2">
+                    {{ point.content }}
+                </div>
+             </div>
+        </div>
+
+        <!-- Financial Context -->
+        <div v-if="isSafe" class="mt-4 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100">
+            <div class="text-xs font-bold text-indigo-400 uppercase tracking-wide mb-1">Financial Potential</div>
+            <div class="text-sm text-gray-700">Benchmarking indicates <span class="font-bold" :class="data.benchmark_score > 80 ? 'text-pastel-mint' : 'text-pastel-canary'">{{ data.benchmark_score > 80 ? 'Strong' : 'Moderate' }}</span> performance potential.</div>
+        </div>
+        <div v-else class="mt-4 p-4 bg-red-50 rounded-xl border border-red-100">
+            <div class="text-xs font-bold text-red-500 uppercase tracking-wide mb-1">Action Required</div>
+            <div class="text-sm text-red-700 font-bold">Please resolve policy violations to see financial benchmarking.</div>
+        </div>
+    </div>
+
     <!-- Creative DNA Details -->
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-50">
         <div class="flex items-center gap-2 mb-4">
@@ -235,41 +270,6 @@ const gaugeColorClass = computed(() => {
                 <span class="text-sm font-bold text-gray-800">{{ data.creative_metrics.duration_seconds }}s</span>
             </div>
        </div>
-    </div>
-
-    <!-- Assessment -->
-    <div class="bg-indigo-50/30 p-6 rounded-2xl border border-indigo-100">
-         <div class="flex items-center gap-2 mb-4">
-            <i class="fa-solid fa-clipboard-check text-indigo-600"></i>
-            <h3 class="font-bold text-indigo-900 uppercase tracking-widest text-xs">Assessment</h3>
-        </div>
-        
-        <div class="space-y-4">
-             <div v-for="(point, idx) in assessmentPoints" :key="idx">
-                <div v-if="point.title" class="mb-2">
-                    <span class="font-bold text-indigo-600 block mb-1">{{ point.title }}</span>
-                    
-                     <div v-if="point.details" class="bg-indigo-50 p-2 rounded-lg border border-indigo-100 mt-1">
-                         <span class="font-bold text-indigo-700 text-xs uppercase tracking-wide px-2 py-0.5 bg-white rounded border border-indigo-200">Flagged for Review</span>
-                         <div class="mt-2 text-gray-700 leading-relaxed text-xs">{{ point.details }}</div>
-                     </div>
-                     <span v-else class="text-sm text-gray-600">{{ point.content }}</span>
-                </div>
-                <div v-else class="text-sm text-gray-600 mb-2">
-                    {{ point.content }}
-                </div>
-             </div>
-        </div>
-
-        <!-- Financial Context -->
-        <div v-if="isSafe" class="mt-4 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100">
-            <div class="text-xs font-bold text-indigo-400 uppercase tracking-wide mb-1">Financial Potential</div>
-            <div class="text-sm text-gray-700">Benchmarking indicates <span class="font-bold" :class="data.benchmark_score > 80 ? 'text-pastel-mint' : 'text-pastel-canary'">{{ data.benchmark_score > 80 ? 'Strong' : 'Moderate' }}</span> performance potential.</div>
-        </div>
-        <div v-else class="mt-4 p-3 bg-red-50 rounded-xl border border-red-100">
-            <div class="text-xs font-bold text-red-400 uppercase tracking-wide mb-1">Action Required</div>
-            <div class="text-sm text-red-600 font-medium">Please resolve policy violations to see financial benchmarking.</div>
-        </div>
     </div>
   </div>
 </template>
