@@ -15,7 +15,7 @@ export class AnalysisController {
             const {
                 industry_id, target_cpa, country, budget,
                 landing_page_url, video_url_input
-            } = req.body;
+            } = req.body || {};
 
             // Basic Validation
             if (!industry_id || !target_cpa || !budget) {

@@ -22,6 +22,7 @@ connectDB();
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Serve Uploads (for N8N to potentially access if on same network)
 // In Vercel, this is read-only except /tmp, but we can serve if it exists
