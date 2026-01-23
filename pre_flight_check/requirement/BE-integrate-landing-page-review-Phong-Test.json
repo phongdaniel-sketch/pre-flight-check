@@ -1,0 +1,1382 @@
+{
+    "name": "BE-integrate-landing-page-review-Phong-Test",
+    "nodes": [
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 2
+                    },
+                    "conditions": [
+                        {
+                            "id": "ea718a74-d81c-4dc4-bd06-a2552d2156ee",
+                            "leftValue": "={{ $json.landing_page_url }}",
+                            "rightValue": "=(instagram\\.com|tiktok\\.com|youtube\\.com|amazon\\.com|etsy\\.com|whatsapp\\.com|facebook\\.com|t\\.me|alibaba\\.com|walmart\\.com|linkedin\\.com|amazon\\.ae|aliexpress\\.com|markaz\\.)",
+                            "operator": {
+                                "type": "string",
+                                "operation": "regex"
+                            }
+                        }
+                    ],
+                    "combinator": "or"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.2,
+            "position": [
+                -2752,
+                1104
+            ],
+            "id": "b036c94c-24ce-4e27-934d-2149697766da",
+            "name": "If"
+        },
+        {
+            "parameters": {
+                "url": "={{ $json.landing_page_url }}",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "User-Agent",
+                            "value": "=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
+                        }
+                    ]
+                },
+                "options": {
+                    "response": {
+                        "response": {
+                            "responseFormat": "file"
+                        }
+                    }
+                }
+            },
+            "name": "4. Lấy Nội Dung HTML Của Sản Phẩm3",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                -2416,
+                752
+            ],
+            "id": "e7c2b365-a55e-45b7-b4a8-9dbb86bd41b2",
+            "retryOnFail": true,
+            "notesInFlow": false,
+            "onError": "continueErrorOutput"
+        },
+        {
+            "parameters": {
+                "modelId": {
+                    "__rl": true,
+                    "value": "models/gemini-2.5-pro",
+                    "mode": "list",
+                    "cachedResultName": "models/gemini-2.5-pro"
+                },
+                "messages": {
+                    "values": [
+                        {
+                            "content": "=You are a world-class, strict, and detail-oriented content moderation expert.Your analysis must be objective and consistently applied across all languages.\n\n--- PRIMARY GOAL ---\nYour primary goal is to determine if the product's core content (productName, productDescription, and overviewText) violates our moderation policies. After that, you will perform a secondary check on the completeness of the website's policy links (footer policies).\n\n--- MODERATION POLICIES ---\nYou MUST strictly adhere to the policies outlined in this document, especially Section 2 (TikTok Advertising Policies):\nhttps://docs.google.com/document/d/1yQSA-SRW-H3DdbJA4kZPCM5A1wqx0oj37lYFi9lHlK0/edit?tab=t.duhkk5p6k7tr#heading=h.2lcoe2rytn0q\n\n--- STEP-BY-STEP ANALYSIS PROCESS ---\nStep 1: \n- First, determine which specific policy category within this section the product relates to. Then, analyze the product content strictly against the rules of that specific category to identify any violations.\nExample:\nIf any mention of real animal Skin, leather, fur, feathers, hair.If found, you MUST immediately classify the product as \"Non-Compliant\", set the violationType to \"Prohibited Animal Products\", and \"stop further analysis\".\n\nIf any mention of Pay close attention to Fuzzy Name Matches with 80-90% similarity.\nExample: \"Lamell\" ~ \"Lamel\" (90% similarity). If found, you MUST immediately classify the product as \"Non-Compliant\", set the violationType to \"Trademark & Copyright (Section 2.30): Unauthorized logos or brand names. \", and \"stop further analysis\".\n\n\nYou MUST IGNORE the following:\nHigh-Pressure Sales Tactics: Examples: \"Hurry up! 43,373 items have been sold\", \"35,439 people have it in their cart.\"\nGeneral Service & Trust Metrics: Examples: \"100% Customer Satisfaction\", \"98% Positive Reviews\", or any percentage-based claims.\nReview Content: Do not analyze reviewText.\nRelated Products: Ignore any information about \"related\" or \"recommended\" products.\nBased on this analysis, determine an initial textContentAnalysisResult which can be \"Compliant\" or \"Non-Compliant\". If \"Non-Compliant\", specify the violationType and textViolationDetails based on the policy document.\n\nStep 2: Perform Footer Policy Check\nAfter Step 1, examine the values of termsOfService, refundPolicy, privacyPolicy, and shippingPolicy.\nApply the following logic sequentially:\nIf textContentAnalysisResult from Step 1 is \"Non-Compliant\", STOP. The final result is determined by the content violation.\nIf textContentAnalysisResult is \"Compliant\", proceed to check the policy links: a. If shippingPolicy is an empty string (\"\"), BUT termsOfService, refundPolicy, AND privacyPolicy are NOT empty, the final textAnalysisResult MUST be \"Manual Review\". b. If shippingPolicy is empty AND at least one other policy is empty, OR if any of termsOfService, refundPolicy, or privacyPolicy is empty, the final textAnalysisResult MUST be \"Non-Compliant\". The violationType must be \"Incomplete Policy Information\" and textViolationDetails must be \"The URL is missing one or more required policy pages (Terms, Shipping, Privacy, or Refund/Returns).\"\n\n\nPRODUCT INFORMATION FOR MODERATION:\n\n\"productUrl\": \"{{ $json.productURL }}\",\n\"productName\": \"{{ $json.productName }}\",\n\"productDescription\": \"{{ $json.productDescription }}\",\n\"reviewText\": \"{{ $json.reviewText }}\",\n\"overviewText\": \"{{ $json.overviewText }}\",\n\"productPrice\": \"{{ $json.productPrice }}\",\n\"discount\": \"{{ $json.discount }}\",\n\"termsOfService\": {{ $json.termsOfService }},\n\"refundPolicy\": {{ $json.refundPolicy }},\n\"privacyPolicy\": {{ $json.privacyPolicy }},\n\"shippingPolicy\":{{ $json.shippingPolicy }} \n\n--- JSON OUTPUT REQUIREMENTS ---\n\nYour output MUST be a single, clean JSON object. Do not include any text or comments outside of it. The process must be deterministic.\n\n{\n  \"extractedData\": \n  \"textAnalysis\": {\n    \"textAnalysisResult\": \"Compliant\"/ \"Non-Compliant\"/ \"Flagged for Review\",\n    \"violationType\": \"A short category of the violation (e.g., 'Spam', 'Exaggerated Claims', 'Misleading Information', 'Counterfeit'). If compliant, return an empty string.\",\n    \"textViolationDetails\": \"If Non-Compliant or Flagged, provide a detailed explanation of the violation, referencing the specific text and the policy rule it breaks. If Compliant, this should be an empty string.\",\n    \"textRecommendation\": \"Approve Content\", \"Reject Content\", or \"Manual Review\"\n  }\n}"
+                        }
+                    ]
+                },
+                "jsonOutput": true,
+                "options": {
+                    "temperature": 0,
+                    "topP": 1
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.googleGemini",
+            "typeVersion": 1,
+            "position": [
+                -608,
+                640
+            ],
+            "id": "173b55c0-aaa9-4fdf-be8a-6c9f9fcd5b3e",
+            "name": "Message a model4",
+            "alwaysOutputData": true,
+            "retryOnFail": true,
+            "waitBetweenTries": 2000,
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "GO9BKwEO1utPTwlh",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Lấy dữ liệu từ input\nconst inputData = $input.all();\n\n// Lấy ageGroup và countryTarget từ node \"4. Lấy Nội Dung HTML Của Sản Phẩm\"\nconst node4Data = $('4. Lấy Nội Dung HTML Của Sản Phẩm3').item.json;\nconst ageGroup = node4Data?.ageGroup || null;\nconst countryTarget = node4Data?.countryTarget || null;\n\n// Array để chứa kết quả\nconst outputItems = [];\n\n// Xử lý từng item\nfor (const item of inputData) {\n  try {\n    // Lấy toàn bộ JSON từ item\n    const rawData = item.json;\n    \n    // Nếu data là array, lấy phần tử đầu tiên\n    const dataArray = Array.isArray(rawData) ? rawData : [rawData];\n    \n    for (const dataItem of dataArray) {\n      // Lấy text từ content.parts[0].text\n      const jsonText = dataItem?.content?.parts?.[0]?.text;\n      \n      if (jsonText) {\n        // Loại bỏ ```json và ``` từ text\n        const cleanedText = jsonText\n          .replace(/```json\\s*/g, '')\n          .replace(/```\\s*$/g, '')\n          .trim();\n        \n        // Parse JSON string thành object\n        const parsedData = JSON.parse(cleanedText);\n        \n        // Thêm vào output với cấu trúc đầy đủ\n        outputItems.push({\n          json: {\n            ...parsedData,\n            // Thêm 2 trường từ node 4\n            ageGroup: ageGroup,\n            countryTarget: countryTarget,\n            // Giữ lại metadata nếu cần\n            citationMetadata: dataItem.citationMetadata,\n            finishReason: dataItem.finishReason\n          }\n        });\n      }\n    }\n  } catch (error) {\n    // Xử lý lỗi nếu có\n    outputItems.push({\n      json: {\n        error: `Parse error: ${error.message}`,\n        originalData: item.json\n      }\n    });\n  }\n}\n\nreturn outputItems;"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -896,
+                640
+            ],
+            "id": "52908e6a-9617-49c1-9e8d-68a4e75fd553",
+            "name": "Code in JavaScript5"
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "type": "n8n-nodes-base.splitInBatches",
+            "typeVersion": 3,
+            "position": [
+                -2928,
+                816
+            ],
+            "id": "f82b499a-0bb9-44e4-bbd5-3a39a07a69cf",
+            "name": "Loop Over Items2"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 2
+                    },
+                    "conditions": [
+                        {
+                            "id": "951c8bb7-d117-4a16-accc-4cd357f663a6",
+                            "leftValue": "=\n{{ $json.landing_page_url }}",
+                            "rightValue": "/products/",
+                            "operator": {
+                                "type": "string",
+                                "operation": "contains"
+                            }
+                        },
+                        {
+                            "id": "1bd0cbd3-75f6-44f7-92ab-e930915672c6",
+                            "leftValue": "={{ $json.landing_page_url }}",
+                            "rightValue": "/product/",
+                            "operator": {
+                                "type": "string",
+                                "operation": "contains"
+                            }
+                        },
+                        {
+                            "id": "3f4a0668-3c4a-46ec-a515-45e52ddf752b",
+                            "leftValue": "={{ $json.landing_page_url }}",
+                            "rightValue": "/products",
+                            "operator": {
+                                "type": "string",
+                                "operation": "contains"
+                            }
+                        },
+                        {
+                            "id": "9adf2742-52fa-4cf6-8275-ab1897c93931",
+                            "leftValue": "={{ $json.landing_page_url }}",
+                            "rightValue": "/product-detail",
+                            "operator": {
+                                "type": "string",
+                                "operation": "contains"
+                            }
+                        },
+                        {
+                            "id": "9d43d7fb-7ff3-4e4c-8caa-36aca050e8e0",
+                            "leftValue": "={{ $json.landing_page_url }}",
+                            "rightValue": "/productos",
+                            "operator": {
+                                "type": "string",
+                                "operation": "contains"
+                            }
+                        }
+                    ],
+                    "combinator": "or"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.2,
+            "position": [
+                -2160,
+                560
+            ],
+            "id": "907c0644-330f-417f-943a-1e38f60572dc",
+            "name": "If1"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Lấy dữ liệu từ input\nconst inputData = $input.all();\n\n// Lấy ageGroup và countryTarget từ node \"4. Lấy Nội Dung HTML Của Sản Phẩm\"\nconst node4Data = $('4. Lấy Nội Dung HTML Của Sản Phẩm3').item.json;\nconst ageGroup = node4Data?.ageGroup || null;\nconst countryTarget = node4Data?.countryTarget || null;\n\n// Array để chứa kết quả\nconst outputItems = [];\n\n// Xử lý từng item\nfor (const item of inputData) {\n  try {\n    // Lấy toàn bộ JSON từ item\n    const rawData = item.json;\n    \n    // Nếu data là array, lấy phần tử đầu tiên\n    const dataArray = Array.isArray(rawData) ? rawData : [rawData];\n    \n    for (const dataItem of dataArray) {\n      // Lấy text từ content.parts[0].text\n      const jsonText = dataItem?.content?.parts?.[0]?.text;\n      \n      if (jsonText) {\n        // Loại bỏ ```json và ``` từ text\n        const cleanedText = jsonText\n          .replace(/```json\\s*/g, '')\n          .replace(/```\\s*$/g, '')\n          .trim();\n        \n        // Parse JSON string thành object\n        const parsedData = JSON.parse(cleanedText);\n        \n        // Thêm vào output với cấu trúc đầy đủ\n        outputItems.push({\n          json: {\n            ...parsedData,\n            // Thêm 2 trường từ node 4\n            ageGroup: ageGroup,\n            countryTarget: countryTarget,\n            // Giữ lại metadata nếu cần\n            citationMetadata: dataItem.citationMetadata,\n            finishReason: dataItem.finishReason\n          }\n        });\n      }\n    }\n  } catch (error) {\n    // Xử lý lỗi nếu có\n    outputItems.push({\n      json: {\n        error: `Parse error: ${error.message}`,\n        originalData: item.json\n      }\n    });\n  }\n}\n\nreturn outputItems;"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -768,
+                16
+            ],
+            "id": "dbe74fff-0bcf-4e4e-bbf2-cc8cd6869c35",
+            "name": "Code in JavaScript7"
+        },
+        {
+            "parameters": {},
+            "type": "n8n-nodes-base.merge",
+            "typeVersion": 3.2,
+            "position": [
+                1904,
+                256
+            ],
+            "id": "6c850b37-7c34-478e-8cf7-e8b6f914f841",
+            "name": "Merge3"
+        },
+        {
+            "parameters": {
+                "sourceData": "=html",
+                "extractionValues": {
+                    "values": [
+                        {
+                            "key": "allText",
+                            "cssSelector": "html"
+                        },
+                        {
+                            "key": "imageUrls",
+                            "cssSelector": "img",
+                            "returnValue": "attribute",
+                            "attribute": "src",
+                            "returnArray": true
+                        },
+                        {
+                            "key": "=termsOfService",
+                            "cssSelector": "=:is(a[href*=\"terms-of-service\" i], a[href*=\"terms_of_service\" i], a[href*=\"terms\" i], a:contains(\"Terms of Service\"), a:contains(\"Terms & Conditions\"), a:contains(\"Điều khoản dịch vụ\"), a:contains(\"Social Media Terms\")):first\n",
+                            "returnValue": "=text"
+                        },
+                        {
+                            "key": "=refundPolicy",
+                            "cssSelector": "=:is(a[href*=\"refund\" i], a[href*=\"return\" i], a:contains(\"Refund Policy\"), a:contains(\"Return Policy\"), a:contains(\"Returns\"), a:contains(\"Chính sách đổi trả\"), a:contains(\"Exchange\"), a[href*=\"Exchange\" i]):first\n",
+                            "returnValue": "=text"
+                        },
+                        {
+                            "key": "=privacyPolicy",
+                            "cssSelector": "=:is(a[href*=\"privacy-policy\" i], a[href*=\"privacy\" i], a:contains(\"Privacy Policy\"), a:contains(\"Chính sách bảo mật\")):first",
+                            "returnValue": "=text"
+                        },
+                        {
+                            "key": "=shippingPolicy",
+                            "cssSelector": "=:is(a[href*=\"shipping-policy\" i], a[href*=\"shipping policy\" i], a[href*=\"delivery\" i], a:contains(\"Shipping\"), a:contains(\"Delivery\"), a:contains(\"Vận chuyển\"), a:contains(\"Shipping policy\")):first",
+                            "returnValue": "=text"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "name": "5. Cào Dữ Liệu Sản Phẩm (HTML Extract)3",
+            "type": "n8n-nodes-base.htmlExtract",
+            "typeVersion": 1,
+            "position": [
+                -1632,
+                656
+            ],
+            "id": "655f5b71-2346-4fb7-a29b-1853248ffe22"
+        },
+        {
+            "parameters": {
+                "modelId": {
+                    "__rl": true,
+                    "value": "models/gemini-2.5-pro",
+                    "mode": "list",
+                    "cachedResultName": "models/gemini-2.5-pro"
+                },
+                "messages": {
+                    "values": [
+                        {
+                            "content": "=You are a strict, deterministic content moderation expert AI.Your analysis must work for all languages, not just English.Your task is to analyze the product information provided below and assess whether it complies with our moderation policies. \n\nOUR MODERATION POLICIES:\nhttps://docs.google.com/document/d/1yQSA-SRW-H3DdbJA4kZPCM5A1wqx0oj37lYFi9lHlK0/edit?tab=t.duhkk5p6k7tr#heading=h.2lcoe2rytn0q\n\n--- PRIMARY DIRECTIVE ---\n1.  **PRIORITY 1: CONTENT POLICY VIOLATION ANALYSIS:**\n    *   First, thoroughly scan the extracted text (`productName`, `productDescription`, `overviewText`, `reviewText`) for any content that violates critical policies.\n\n    *   **If a content violation is found in OUR MODERATION POLICIES:**\n        *   Immediately classify the result as **\"Non-Compliant\"**.\n        *   Set `violationType` to \"Prohibited Content\".\n        *   In `textViolationDetails`, specify the exact violation found (e.g., \"Product description appears to promote illegal substances.\").\n        *   Set `textRecommendation` to \"Reject Content\".\n        *   **Stop further analysis.** Do not proceed to check for missing policy pages.\n\n2.  **PRIORITY 2: POLICY PAGE COMPLETENESS CHECK:**\n    *   **Only if no content violations were found in Priority 1**, proceed to check if the required policy pages are present.\n    *   Examine the extracted policy fields: `termsOfService`, `refundPolicy`, `privacyPolicy`, `shippingPolicy`.\n    *   A policy is considered \"missing\" if its corresponding field is an empty string `\"\"`.\n    *   **If any of these policies are missing:**\n        *   Classify the result as **\"Non-Compliant\"**.\n        *   Set `violationType` to \"Incomplete Policy Information\".\n        *   In `textViolationDetails`, state: \"The URL is missing one or more required policy pages (Terms, Shipping, Privacy, or Refund/Returns).\"\n        *   Set `textRecommendation` to \"Reject Content\".\n\n3.  **COMPLIANT URL:**\n    *   If the content passes the check in Priority 1 AND all required policy pages are present in Priority 2, then the URL is compliant if URL is \"LANDING PAGE\" or \"HOME PAGE\".\n    *   Classify the result as **\"Compliant\"**.\n    *   Leave `violationType`, `textViolationDetails`, and `textRecommendation` as empty strings.\n\n If the content passes the check in Priority 1 AND all required policy pages are present in Priority 2, then the URL is manual review if URL is \"CATALOG PAGE\".\n    *   Classify the result as **\"Flagged for Review\"**.\n    *   Leave `violationType`, `textViolationDetails`, and `textRecommendation` as empty strings and return message \"Please provide a direct URL to a specific product.\"\n--- PRODUCT INFORMATION FOR MODERATION ---\n{\n    \"productName\": \"{{ $json.productName }}\",\n    \"productDescription\": \"{{ $json.productDescription }}\",\n    \"reviewText\": \"{{ $json.reviewText }}\",\n    \"overviewText\": \"{{ $json.overviewText }}\",\n    \"productPrice\": \"{{ $json.productPrice }}\",\n    \"discount\": \"{{ $json.discount }}\",\n    \"termsOfService\": {{ $json.termsOfService }},\n    \"refundPolicy\": {{ $json.refundPolicy }},\n    \"privacyPolicy\": {{ $json.privacyPolicy }},\n    \"shippingPolicy\":{{ $json.shippingPolicy }} \n\n}\n\n--- JSON OUTPUT REQUIREMENTS ---\nYour output MUST be a single, clean JSON object. Do not include any text or comments outside of it.\n\n{\n  \"extractedData\": \n    \n  \"textAnalysis\": {\n    \"textAnalysisResult\": \"Compliant\" | \"Non-Compliant\" | \"Flagged for Review\",\n    \"violationType\": \"A short category of the violation (e.g., 'Spam', 'Exaggerated Claims', 'Incomplete Policy Information'). If compliant, return an empty string.\",\n    \"textViolationDetails\": \"If Non-Compliant or Flagged, provide a detailed explanation of the violation, referencing the specific text and the policy rule it breaks. If Compliant, this should be an empty string.\",\n    \"textRecommendation\": \"Approve Content\" | \"Reject Content\" | \"Manual Review\"\n  }\n}\n\n--- INPUT DATA ---\n{{ $('Extract Product Data3').item.json }}\n"
+                        }
+                    ]
+                },
+                "jsonOutput": true,
+                "options": {
+                    "temperature": 0.3,
+                    "topP": 1
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.googleGemini",
+            "typeVersion": 1,
+            "position": [
+                0,
+                0
+            ],
+            "id": "7f898a29-70b0-460d-9bba-53019820d075",
+            "name": "Message a model5",
+            "alwaysOutputData": true,
+            "retryOnFail": true,
+            "waitBetweenTries": 2000,
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "GO9BKwEO1utPTwlh",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "modelId": {
+                    "__rl": true,
+                    "value": "models/gemini-2.5-flash",
+                    "mode": "list",
+                    "cachedResultName": "models/gemini-2.5-flash"
+                },
+                "messages": {
+                    "values": [
+                        {
+                            "content": "=You are an efficient, multilingual data extraction AI. Your sole purpose is to parse raw text from a website and convert it into a structured JSON object.\n\n--- INSTRUCTIONS ---\n\n1.  **EXTRACT ONLY:** Do not analyze, interpret, or change the content. Your job is to find and extract the data for the fields listed below.\n\n2.  **IDENTIFY POLICY TEXT:** Carefully scan the `SOURCE_TEXT`, especially within footer (`<footer>`) or navigation (`<nav>`) elements, to find text related to specific policies.\n    *   For the `termsOfService` field, find text like \"Terms of Service\" or \"Terms & Conditions\".\n    *   For the `refundPolicy` field, find text like \"Refund Policy\" or \"Returns Policy\".\n    *   For the `privacyPolicy` field, find text like \"Privacy Policy\".\n    *   For the `shippingPolicy` field, find text like \"Shipping Policy\" or \"Shipping Information\".\n    *   Extract the visible text of the link or related paragraph.\n\n3.  **CAPTURE OVERVIEW & FOOTER:** For the `overviewText` field, extract all general text from the footer and any other product key points or bullet lists. This field should act as a catch-all for important non-product-specific text.\n\n4.  **USE PROVIDED IMAGE URLS:** For the `imageUrls` field, you MUST use the `SOURCE_IMAGE_URLS` list directly. Do not try to find URLs in the `SOURCE_TEXT`.\n\n5.  **HANDLE MISSING DATA:** If a specific piece of information is not found in the `SOURCE_TEXT`, return an empty string `\"\"` for that field. This is mandatory for all fields, including the policy fields.\n\n--- JSON OUTPUT REQUIREMENTS ---\n\nYour output MUST be a single, clean JSON object. Do not include any text, comments, or markdown (like ` ```json `) outside of the JSON object.\n\nThe structure is as follows:\n```json\n{\n\"URL\": \"The canonical URL of the link input.\",\n  \"productURL\": \"The canonical URL of the product, if available. Otherwise, the main page URL.\",\n  \"productName\": \"The full name of the product. If it's a homepage, use the site name.\",\n  \"productPrice\": \"The price, with currency if available.\",\n  \"productDescription\": \"The main product description.\",\n  \"reviewText\": \"Any user reviews or comments found.\",\n  \"overviewText\": \"All general text from the footer, navigation, and any product key points.\",\n  \"discount\": \"Any text related to sales or discounts (e.g., 'Buy 2 get 10% OFF').\",\n  \"termsOfService\": \"Extracted text for 'Terms of Service'. Return empty string if not found.\",\n  \"refundPolicy\": \"Extracted text for 'Refund Policy' or 'Returns'. Return empty string if not found.\",\n  \"privacyPolicy\": \"Extracted text for 'Privacy Policy'. Return empty string if not found.\",\n  \"shippingPolicy\": \"Extracted text for 'Shipping Policy'. Return empty string if not found.\"\n}\n--- INPUT DATA ---\n\n\n\n[SOURCE_TEXT]\n{{\n  (() => {\n    try {\n      const text = String($json.allText || '').replace(/\\r\\n/g, '\\n');\n      return text\n        .split(/\\n{2,}/)\n        .map(p =>\n          p\n            .replace(/\\s*\\n\\s*/g, ' ')\n            .replace(/\\s+/g, ' ')\n            .trim()\n        )\n        .filter(Boolean)\n        .join('\\n\\n');\n    } catch (err) {\n      // Return empty string or a fallback message if something goes wrong\n      return $json.allText;\n    }\n  })()\n}}\n\nThis is the website footer:\nTerms of service: {{ JSON.stringify($json.termsOfService) }}\nShipping policy: {{ JSON.stringify($json.shippingPolicy) }}\nRefund policy: {{ JSON.stringify($json.refundPolicy) }}\nPrivacy policy: {{ JSON.stringify($json.privacyPolicy) }}\n\nNow, perform the extraction and return ONLY the single JSON object."
+                        }
+                    ]
+                },
+                "options": {
+                    "temperature": 0.2,
+                    "topP": 1
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.googleGemini",
+            "typeVersion": 1,
+            "position": [
+                -1280,
+                640
+            ],
+            "id": "142e9d3d-2544-4e90-bb81-57cf1d25ffaf",
+            "name": "Extract Product Data",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "GO9BKwEO1utPTwlh",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            }
+        },
+        {
+            "parameters": {},
+            "type": "n8n-nodes-base.merge",
+            "typeVersion": 3.2,
+            "position": [
+                1856,
+                768
+            ],
+            "id": "d6b0d21b-51ad-4e01-bb9e-736f6590fec7",
+            "name": "Merge"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nconst inputImages = $input.first().json.imageUrls;\nif (!inputImages || inputImages.length == 0) {\n  return { imageUrls: [] };\n}\n\nconst cleanedUrls = inputImages\n    .map(url => {\n      if (!url || typeof url !== 'string') return null;\n      \n      let cleaned = url\n        .trim()\n        .replace(/\\\\\"/g, '\"')\n        .replace(/\\\\\\//g, '/')\n        .replace(/\\\\/g, '');\n\n      // ✅ Thêm domain gốc nếu URL chỉ là đường dẫn tương đối\n      if (cleaned.startsWith('/')) {\n       cleaned = 'https://' + cleaned.replace(/^\\/+/, '')\n\n      }\n\n      // Fix protocol nếu URL bắt đầu bằng //\n      if (cleaned.startsWith('//')) {\n        cleaned = 'https:' + cleaned;\n      }\n      \n      return cleaned;\n    })\n    .filter(url => url && url.startsWith('http'));\n\n  \n// Remove duplicates\nconst uniqueUrls = [...new Set(cleanedUrls)];\n\n// Filter image url\nconst filterImageUrls = [];\n\n// ===== CONFIG =====\nconst config = {\n  excludeKeywords: [\n    'thumbnail',\n    'icon',\n    'logo',\n    'favicon',\n    'placeholder',\n    'avatar',\n    'badge',\n    'banner',\n    'bg-',\n    'background'\n  ],\n  excludeExtensions: ['gif', 'svg'],\n\n  \n  preferHighResolution: true\n};\n\nconst imageData = {}; // { 'a.png': ['https://a.png?withd=1', 'https://a.png?withd=2', 'https://a.png?withd=3']}\n\nif (!uniqueUrls.length) {\n  return { filterImageUrls: [] }\n}\n\nfor (const item of uniqueUrls) {\n  // Bỏ qua item không có imageUrl\n  if (!item || typeof item !== 'string') continue;\n\n  // Decode URL (tránh lỗi trùng do %20, v.v.)\n  let imageUrl = decodeURIComponent(item);\n  const urlLower = imageUrl.toLowerCase();\n\n  // === FILTER 1: Theo keywords ===\n  const hasExcludedKeyword = config.excludeKeywords.some(keyword =>\n    urlLower.includes(keyword.toLowerCase())\n  );\n  if (hasExcludedKeyword) continue;\n\n  // === FILTER 2: Theo extension ===\n  const hasExcludedExt = config.excludeExtensions.some(ext => {\n    const pattern = new RegExp(`\\\\.${ext}(\\\\?|$)`, 'i');\n    return pattern.test(imageUrl);\n  });\n  if (hasExcludedExt) continue;\n \n  if (imageUrl &&imageUrl.includes('/vendor/')) {\n    continue; \n  }\n\n  const fileName = imageUrl.split('/').pop().split('?')[0];\n  if (!imageData[fileName]) {\n    imageData[fileName] = []; \n  }\n  imageData[fileName].push(imageUrl);\n}\n\n\nfunction getWidth(url) {\n  const query = url.split('?')[1] || '';\n  const pairs = query.split('&');\n\n  for (const pair of pairs) {\n    const [key, value] = pair.split('=');\n    if (key === 'width') {\n      const num = Number(value);\n      return Number.isNaN(num) ? 0 : num;\n    }\n  }\n\n  return 0;\n}\n\n// File the best file by file name\nfor (const fileName of Object.keys(imageData)) {\n  const variants = imageData[fileName];\n  const sorted = variants.sort((a, b) => getWidth(b) - getWidth(a));\n  const bestFile = sorted[0];\n  filterImageUrls.push(bestFile);\n}\n\nreturn { imageUrls: filterImageUrls };"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -768,
+                384
+            ],
+            "id": "24ed8416-9b18-4060-8c58-35f01bda0126",
+            "name": "Filter & Clean Images1",
+            "retryOnFail": false,
+            "maxTries": 2,
+            "alwaysOutputData": true
+        },
+        {
+            "parameters": {
+                "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nconst inputImages = $input.first().json.imageUrls;\nif (!inputImages || inputImages.length == 0) {\n  return { imageUrls: [] };\n}\n\nconst cleanedUrls = inputImages\n    .map(url => {\n      if (!url || typeof url !== 'string') return null;\n      \n      let cleaned = url\n        .trim()\n        .replace(/\\\\\"/g, '\"')\n        .replace(/\\\\\\//g, '/')\n        .replace(/\\\\/g, '');\n\n      // ✅ Thêm domain gốc nếu URL chỉ là đường dẫn tương đối\n      if (cleaned.startsWith('/')) {\n       cleaned = 'https://' + cleaned.replace(/^\\/+/, '')\n\n      }\n\n      // Fix protocol nếu URL bắt đầu bằng //\n      if (cleaned.startsWith('//')) {\n        cleaned = 'https:' + cleaned;\n      }\n      \n      return cleaned;\n    })\n    .filter(url => url && url.startsWith('http'));\n\n  \n// Remove duplicates\nconst uniqueUrls = [...new Set(cleanedUrls)];\n\n// Filter image url\nconst filterImageUrls = [];\n\n// ===== CONFIG =====\nconst config = {\n  excludeKeywords: [\n    'thumbnail',\n    'icon',\n    'logo',\n    'favicon',\n    'placeholder',\n    'avatar',\n    'badge',\n    'banner',\n    'bg-',\n    'background'\n  ],\n  excludeExtensions: ['gif', 'svg'],\n\n  \n  preferHighResolution: true\n};\n\nconst imageData = {}; // { 'a.png': ['https://a.png?withd=1', 'https://a.png?withd=2', 'https://a.png?withd=3']}\n\nif (!uniqueUrls.length) {\n  return { filterImageUrls: [] }\n}\n\nfor (const item of uniqueUrls) {\n  // Bỏ qua item không có imageUrl\n  if (!item || typeof item !== 'string') continue;\n\n  // Decode URL (tránh lỗi trùng do %20, v.v.)\n  let imageUrl = decodeURIComponent(item);\n  const urlLower = imageUrl.toLowerCase();\n\n  // === FILTER 1: Theo keywords ===\n  const hasExcludedKeyword = config.excludeKeywords.some(keyword =>\n    urlLower.includes(keyword.toLowerCase())\n  );\n  if (hasExcludedKeyword) continue;\n\n  // === FILTER 2: Theo extension ===\n  const hasExcludedExt = config.excludeExtensions.some(ext => {\n    const pattern = new RegExp(`\\\\.${ext}(\\\\?|$)`, 'i');\n    return pattern.test(imageUrl);\n  });\n  if (hasExcludedExt) continue;\n \n  if (imageUrl &&imageUrl.includes('/vendor/')) {\n    continue; \n  }\n\n  const fileName = imageUrl.split('/').pop().split('?')[0];\n  if (!imageData[fileName]) {\n    imageData[fileName] = []; \n  }\n  imageData[fileName].push(imageUrl);\n}\n\n\nfunction getWidth(url) {\n  const query = url.split('?')[1] || '';\n  const pairs = query.split('&');\n\n  for (const pair of pairs) {\n    const [key, value] = pair.split('=');\n    if (key === 'width') {\n      const num = Number(value);\n      return Number.isNaN(num) ? 0 : num;\n    }\n  }\n\n  return 0;\n}\n\n// File the best file by file name\nfor (const fileName of Object.keys(imageData)) {\n  const variants = imageData[fileName];\n  const sorted = variants.sort((a, b) => getWidth(b) - getWidth(a));\n  const bestFile = sorted[0];\n  filterImageUrls.push(bestFile);\n}\n\nreturn { imageUrls: filterImageUrls };"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -1040,
+                992
+            ],
+            "id": "5962423b-1abb-4933-a868-97dd69cdd28b",
+            "name": "Filter & Clean Images",
+            "retryOnFail": false,
+            "maxTries": 2,
+            "alwaysOutputData": true
+        },
+        {
+            "parameters": {
+                "jsCode": "// Lấy toàn bộ 149 item dưới dạng mảng (array)\n// Phương thức .all() đảm bảo trả về một mảng, cho phép sử dụng .map()\nconst originalItems = $('Filter & Clean Images1').all(); \n\n// Tạo mảng mới chứa 149 item JSON cố định\nconst manualReviewOutput = originalItems.map(item => ({\n  // Lấy imageUrl từ item gốc. \n  // Lưu ý: item.json.imageUrl là cú pháp chính xác trong n8n khi dùng .all()\n  imageUrl: item.json.imageUrl, \n  \n  // Các trường cố định cho trường hợp \"Batch Size Rule\"\n  imageAnalysisResult: \"Flagged for Review\",\n  violationType: \"\", \n  violationDetails: \"Batch contains more than 30 images — requires manual review.\",\n  imageRecommendation: \"Manual Review\",\n  stopWorkflow: false \n}));\n\nreturn manualReviewOutput;\n"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1088,
+                544
+            ],
+            "id": "0fcce7ea-4f2a-411c-a043-9ba113bdcb1f",
+            "name": "Map to manual review"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Lấy toàn bộ 149 item dưới dạng mảng (array)\n// Phương thức .all() đảm bảo trả về một mảng, cho phép sử dụng .map()\nconst originalItems = $('Filter & Clean Images').all(); \n\n// Tạo mảng mới chứa 149 item JSON cố định\nconst manualReviewOutput = originalItems.map(item => ({\n  // Lấy imageUrl từ item gốc. \n  // Lưu ý: item.json.imageUrl là cú pháp chính xác trong n8n khi dùng .all()\n  imageUrl: item.json.imageUrl, \n  \n  // Các trường cố định cho trường hợp \"Batch Size Rule\"\n  imageAnalysisResult: \"Flagged for Review\",\n  violationType: \"\", \n  violationDetails: \"Batch contains more than 30 images — requires manual review.\",\n  imageRecommendation: \"Manual Review\",\n  stopWorkflow: false \n}));\n\nreturn manualReviewOutput;\n"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                752,
+                1200
+            ],
+            "id": "a01fd3d6-8cf9-4426-ac7f-889005a6da94",
+            "name": "Manual review 2"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "loose",
+                        "version": 2
+                    },
+                    "conditions": [
+                        {
+                            "id": "617ebd6c-af87-4ef4-91fb-977f50be5417",
+                            "leftValue": "={{ $json.imageUrls?.length }}",
+                            "rightValue": 30,
+                            "operator": {
+                                "type": "number",
+                                "operation": "lte"
+                            }
+                        },
+                        {
+                            "id": "3315d1ea-10b7-4059-a31d-7c2bcf5cbdb5",
+                            "leftValue": "={{ $json.imageUrls?.length }}",
+                            "rightValue": "=0",
+                            "operator": {
+                                "type": "number",
+                                "operation": "gt"
+                            }
+                        },
+                        {
+                            "id": "78569c0f-df19-461a-9bd9-d26bb467a375",
+                            "leftValue": "={{ $json.imageUrls?.[0] }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "notEmpty",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "looseTypeValidation": true,
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.2,
+            "position": [
+                -304,
+                416
+            ],
+            "id": "db94508b-74fe-422f-86cb-d49631e0644a",
+            "name": "If2"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "loose",
+                        "version": 2
+                    },
+                    "conditions": [
+                        {
+                            "id": "617ebd6c-af87-4ef4-91fb-977f50be5417",
+                            "leftValue": "={{ $json.imageUrls?.length }}\n",
+                            "rightValue": 30,
+                            "operator": {
+                                "type": "number",
+                                "operation": "lte"
+                            }
+                        },
+                        {
+                            "id": "3315d1ea-10b7-4059-a31d-7c2bcf5cbdb5",
+                            "leftValue": "={{ $json.imageUrls?.length }}",
+                            "rightValue": "=0",
+                            "operator": {
+                                "type": "number",
+                                "operation": "gt"
+                            }
+                        },
+                        {
+                            "id": "694b465e-ff58-4aed-96c0-4b36e493c276",
+                            "leftValue": "={{ $json.imageUrls }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "array",
+                                "operation": "notEmpty",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "looseTypeValidation": true,
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.2,
+            "position": [
+                -720,
+                992
+            ],
+            "id": "46bd091f-075c-4fa1-ba38-03b750d9d027",
+            "name": "If4"
+        },
+        {
+            "parameters": {
+                "resource": "image",
+                "operation": "analyze",
+                "modelId": {
+                    "__rl": true,
+                    "value": "models/gemini-2.5-pro",
+                    "mode": "list",
+                    "cachedResultName": "models/gemini-2.5-pro"
+                },
+                "text": "=Role Context: You are a top-tier AI content moderation specialist with expert skills in visual analysis and Optical Character Recognition (OCR). Your analysis must be accurate across all languages.\nPrimary Task: Analyze a series of product images against a strict provided policy and return the results as a tightly structured JSON string\n\n--- Core Rules & Analysis ---\na. Policy Adherence:\nAll decisions MUST strictly adhere to the policies in this document.\nPay special attention to Section 2.30 (Trademark) and Section 2.4 (Animals).\nPolicy Link: https://docs.google.com/document/d/1yQSA-SRW-H3DdbJA4kZPCM5A1wqx0oj37lYFi9lHlK0/edit#heading=h.urkol5ighcaw\nb. Scope of Analysis:\nFocus on the Main Product: Analyze only the primary product being sold. Ignore all accompanying items, accessories, or backgrounds in the image.\nExample: If the product is a pair of socks, analyze only the socks. Disregard any shoes, pants, or other apparel shown with them.\nExclude Contact Information: If an image contains contact information (phone number, website, social media handles, address ), completely ignore it and do not include it in the analysis.\nc. Violation Criteria:\n- Trademark & Copyright (Section 2.30):\nPrimary Task: Compare the productName and any text found in images (OCR) against the provided protectedBrandList.\nDetection Method: Identify any name that is an exact match, a misspelling, or a fuzzy match (80-90% similarity) to a name in the protectedBrandList.\nExample: If protectedBrandList contains \"L'Oréal\", then \"Loreal\", \"L'Oreal\", \"L'Oriel\" are all potential violations.\nExample: \"Lamell\" vs. a protected brand \"Lamel\" (90% similarity) is a violation.\n- Adult & Suggestive Content: Nudity, revealing clothing, or suggestive poses.\n- Hate Speech & Politics: Hateful symbols or sensitive political content.\n- Violence & Gore: Weapons, blood, or images of injury.\nOCR Text: Forbidden words or misleading claims (e.g., \"100% free\").\n\n2. Output Format Requirements (JSON)\na. Mandatory Format:\nReturn your response only as a single JSON string.\nThe response must strictly follow the structure specified below. Do not add any explanatory text outside the JSON string.\nb. JSON Structure:\nThe imageResult array must contain one object for each analyzed image.\n\n{\n  \"imageResult\": [{\n    \"productName\": The name of the product in the image,\n  \"imageAnalysisResult\": \"Compliant\", \"Non-Compliant\", \"Flagged for Review\".\n  \"violationType\": \"A short category of the violation (e.g., 'Trademark', 'Adult Content', 'Violence', 'Hate Speech', 'OCR Text'). If compliant, ignored, or error, return an empty string.\",\n  \"violationDetails\": \"A concise but clear explanation of the specific violation. If compliant return an empty string.\",\n  \"imageRecommendation\": \"Approve\", \"Reject\", \"Manual Review\". If error, return 'Manual Review'.\"\n  }]\n}\n\nNow, proceed with the analysis the images and return the result in the exact JSON format specified above.",
+                "imageUrls": "={{ $json.imageUrls.join(',') }}",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.googleGemini",
+            "typeVersion": 1,
+            "position": [
+                992,
+                944
+            ],
+            "id": "5e7d0bdc-1066-4ab0-907c-ddef75af2f98",
+            "name": "Analyze an image",
+            "retryOnFail": false,
+            "alwaysOutputData": true,
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "GO9BKwEO1utPTwlh",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            },
+            "onError": "continueRegularOutput"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nconst inputImageUrls = $input.all();\nconsole.log({ inputImageUrls })\n\nreturn { imageUrls: inputImageUrls?.filter(item => item.json?.imageUrls && !item.json?.error).map(item => item?.json?.imageUrls) };"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                528,
+                1008
+            ],
+            "id": "6185b86c-4166-48e3-85b3-8bea3e595168",
+            "name": "Filter success image json"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nconst inputImageUrls = $input.all();\nconsole.log({ inputImageUrls })\n\nreturn { imageUrls: inputImageUrls?.filter(item => item.json?.imageUrls && !item.json?.error).map(item => item?.json?.imageUrls) };"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                768,
+                400
+            ],
+            "id": "a7ecca9d-1cd1-4db8-b379-0230fc5d5d3b",
+            "name": "Filter success image json1"
+        },
+        {
+            "parameters": {
+                "modelId": {
+                    "__rl": true,
+                    "value": "models/gemini-2.5-flash",
+                    "mode": "list",
+                    "cachedResultName": "models/gemini-2.5-flash"
+                },
+                "messages": {
+                    "values": [
+                        {
+                            "content": "=You are an efficient, multilingual data extraction AI. Your sole purpose is to parse raw text from a website and convert it into a structured JSON object.\n\n--- INSTRUCTIONS ---\n\n1.  **EXTRACT ONLY:** Do not analyze, interpret, or change the content. Your job is to find and extract the data for the fields listed below.\n\n2.  **IDENTIFY POLICY TEXT:** Carefully scan the `SOURCE_TEXT`, especially within footer (`<footer>`) or navigation (`<nav>`) elements, to find text related to specific policies.\n    *   For the `termsOfService` field, find text like \"Terms of Service\" or \"Terms & Conditions\".\n    *   For the `refundPolicy` field, find text like \"Refund Policy\" or \"Returns Policy\".\n    *   For the `privacyPolicy` field, find text like \"Privacy Policy\".\n    *   For the `shippingPolicy` field, find text like \"Shipping Policy\" or \"Shipping Information\".\n    *   Extract the visible text of the link or related paragraph.\n\n3.  **CAPTURE OVERVIEW & FOOTER:** For the `overviewText` field, extract all general text from the footer and any other product key points or bullet lists. This field should act as a catch-all for important non-product-specific text.\n\n4.  **USE PROVIDED IMAGE URLS:** For the `imageUrls` field, you MUST use the `SOURCE_IMAGE_URLS` list directly. Do not try to find URLs in the `SOURCE_TEXT`.\n\n5.  **HANDLE MISSING DATA:** If a specific piece of information is not found in the `SOURCE_TEXT`, return an empty string `\"\"` for that field. This is mandatory for all fields, including the policy fields.\n\n--- JSON OUTPUT REQUIREMENTS ---\n\nYour output MUST be a single, clean JSON object. Do not include any text, comments, or markdown (like ` ```json `) outside of the JSON object.\n\nThe structure is as follows:\n```json\n{\n\"URL\": \"The canonical URL of the link input.\",\n  \"productURL\": \"The canonical URL of the product, if available. Otherwise, the main page URL.\",\n  \"productName\": \"The full name of the product. If it's a homepage, use the site name.\",\n  \"productPrice\": \"The price, with currency if available.\",\n  \"productDescription\": \"The main product description.\",\n  \"reviewText\": \"Any user reviews or comments found.\",\n  \"overviewText\": \"All general text from the footer, navigation, and any product key points.\",\n  \"discount\": \"Any text related to sales or discounts (e.g., 'Buy 2 get 10% OFF').\",\n  \"termsOfService\": \"Extracted text for 'Terms of Service'. Return empty string if not found.\",\n  \"refundPolicy\": \"Extracted text for 'Refund Policy' or 'Returns'. Return empty string if not found.\",\n  \"privacyPolicy\": \"Extracted text for 'Privacy Policy'. Return empty string if not found.\",\n  \"shippingPolicy\": \"Extracted text for 'Shipping Policy'. Return empty string if not found.\"\n}\n--- INPUT DATA ---\n\n\n[SOURCE_TEXT]\n{{\n  (() => {\n    try {\n      const text = String($json.allText || '').replace(/\\r\\n/g, '\\n');\n      return text\n        .split(/\\n{2,}/)\n        .map(p =>\n          p\n            .replace(/\\s*\\n\\s*/g, ' ')\n            .replace(/\\s+/g, ' ')\n            .trim()\n        )\n        .filter(Boolean)\n        .join('\\n\\n');\n    } catch (err) {\n      // Return empty string or a fallback message if something goes wrong\n      return $json.allText;\n    }\n  })()\n}}\n\nThis is the website footer:\nTerms of service: {{ JSON.stringify($json.termsOfService) }}\nShipping policy: {{ JSON.stringify($json.shippingPolicy) }}\nRefund policy: {{ JSON.stringify($json.refundPolicy) }}\nPrivacy policy: {{ JSON.stringify($json.privacyPolicy) }}\n\nNow, perform the extraction and return ONLY the single JSON object."
+                        }
+                    ]
+                },
+                "options": {
+                    "temperature": 0.2,
+                    "topP": 1
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.googleGemini",
+            "typeVersion": 1,
+            "position": [
+                -1296,
+                48
+            ],
+            "id": "6b975ad7-5ce5-42d6-9854-a5f6695994a8",
+            "name": "Extract Product Data3",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "GO9BKwEO1utPTwlh",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Lấy tất cả items từ node Merge\nconst allItems = $input.all();\nconst imageItem = allItems.find(item => item?.json?.content?.parts?.[0]?.text?.includes('imageResult'))?.json;\nconst textItem = allItems.find(item => item?.json?.content?.parts?.[0]?.text?.includes('textAnalysis'))?.json;\nconst manualReviewImage = allItems.find(item => item.json.imageRecommendation === 'Manual Review')?.json;\nconsole.log({ allItems, imageItem, textItem })\n// --- TRÍCH XUẤT DỮ LIỆU GỐC Từ extractedData ---\nlet textAnalysis = {};\nif (textItem) {\n  try {\n    const rawTextString = textItem?.content?.parts?.[0]?.text    \n    if (rawTextString) {\n      const parsedText = JSON.parse(\n        rawTextString\n          .replace(/^```json\\s*/, '')\n          .replace(/```$/, '')\n          .trim()\n      );\n      textAnalysis = parsedText.textAnalysis || {};\n    }\n  } catch (e) {\n      console.error(\"Error parsing text item:\", e.message);\n      textAnalysis = { \n          textAnalysisResult: \"Error\", \n          violationType: \"\",\n          textViolationDetails: \"Failed to parse text analysis: \" + e.message, \n          textRecommendation: \"Manual Review\" \n      };\n  }\n}\n\n// --- TRÍCH XUẤT KẾT QUẢ PHÂN TÍCH IMAGE ---\nlet imageAnalysisArray = [];\nif (imageItem) {\n  try {\n    const rawImageString = imageItem?.content?.parts?.[0]?.text;\n    if (rawImageString) {\n      imageAnalysisArray = JSON.parse(\n        rawImageString\n        .replace(/^```json\\s*/, '')\n        .replace(/```$/, '')\n        .trim()\n      ).imageResult;\n    }\n  } catch (e) {\n      console.error(\"Error parsing image item:\", e.message);\n      imageAnalysisArray = [{ \n        imageAnalysisResult: \"Error\", \n        imageViolationType: \"\",\n        imageViolationDetails: \"Failed to parse image analysis: \" + e.message,\n        imageRecommendation: \"Manual Review\"\n      }];\n  }\n}\n\n\nconsole.log({ imageAnalysisArray })\n// --- LOGIC TỔNG HỢP ---\nlet finalViolationDetails = [];\nlet violationTypes = [];\nlet finalRecommendation = 'Approve';\n\n// 1. Xử lý kết quả phân tích TEXT\nif (textAnalysis.textAnalysisResult !== \"Compliant\") {\n  if (textAnalysis.violationType) {\n      violationTypes.push(textAnalysis.violationType);\n  }\n  \n  finalViolationDetails.push(\n      `TEXT: ${textAnalysis.textViolationDetails || \"Unknown error\"}`\n  );\n  finalRecommendation = textAnalysis.textRecommendation;\n}\n\n// 2. Xử lý kết quả phân tích IMAGE\nlet ImageRecommendation = '';\nlet ImageViolationDetails = [];\nlet ImageViolationTypes = [];\nlet ImageAnalysisResult = '';\nfor (const image of imageAnalysisArray) {\n  if (image.imageAnalysisResult === \"Compliant\") {\n    continue;\n  }\n  ImageAnalysisResult = image.imageAnalysisResult;\n  if (image.violationType) {\n    violationTypes.push(image.violationType);\n    ImageViolationTypes.push(image.violationType);\n  }\n  if (image.violationDetails) {\n    finalViolationDetails.push(\n        `${image.violationDetails || \"Unknown error\"}`\n    );\n    ImageViolationDetails.push(`${image.violationDetails || \"Unknown error\"}`)\n  }\n  \n  if (!finalRecommendation?.toLowerCase().includes('reject')) {\n    finalRecommendation = image.imageRecommendation;\n    ImageRecommendation = image.imageRecommendation;\n    break;\n  }\n}\n\n// --- TẠO OBJECT KẾT QUẢ CUỐI CÙNG ---\nconst finalOutput = {  \n  // === CHI TIẾT PHÂN TÍCH TEXT ===\n  TextAnalysisResult: textAnalysis.textAnalysisResult || \"\",\n  TextViolationType: textAnalysis.violationType || \"\",\n  TextViolationDetails: textAnalysis.textViolationDetails || \"\",\n  TextRecommendation: textAnalysis.textRecommendation || \"\",\n\n  // === CHI TIẾT PHÂN IMAGES ===\n  ImageRecommendation,\n  ImageViolationDetails,\n  ImageViolationTypes,\n  ImageAnalysisResult,\n\n\n  // === KẾT QUẢ TỔNG HỢP ===\n  ViolationType: [...new Set(violationTypes)].join('; '),\n  ViolationDetails: finalViolationDetails.join(' | ') || \"None\",\n  Recommendation: finalRecommendation,\n\n  // adId to match to the sheet for writing\n  ad_id: $('4. Lấy Nội Dung HTML Của Sản Phẩm3').first().json.ad_id,\n  ads_detail: $('4. Lấy Nội Dung HTML Của Sản Phẩm3').first().json.ads_detail,\n  user_ids: $('4. Lấy Nội Dung HTML Của Sản Phẩm3').first().json.user_ids,\n  advertiser_ids: $('4. Lấy Nội Dung HTML Của Sản Phẩm3').first().json.advertiser_ids,\n  landing_page_url: $('4. Lấy Nội Dung HTML Của Sản Phẩm3').first().json.landing_page_url,\n  ad_material_ids: $('4. Lấy Nội Dung HTML Của Sản Phẩm3').first().json.ad_material_ids,\n};\nconst hasBeenRejected = finalRecommendation?.toLowerCase()?.includes('reject');\nif (manualReviewImage && !hasBeenRejected) {\n  finalOutput.Recommendation = manualReviewImage;\n}\nconsole.log({ finalOutput });\n// Trả về kết quả\nreturn [finalOutput];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                2336,
+                384
+            ],
+            "id": "57de5cfc-59e9-40be-93e3-01e1858bd134",
+            "name": "Parse from AI"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Lấy tất cả items từ node Merge\nconst allItems = $input.all();\nconst imageItem = allItems.find(item => item?.json?.content?.parts?.[0]?.text?.includes('imageResult'))?.json;\nconst textItem = allItems.find(item => item?.json?.content?.parts?.[0]?.text?.includes('textAnalysis'))?.json;\nconst manualReviewImage = allItems.find(item => item.json.imageRecommendation === 'Manual Review')?.json;\nconsole.log({ allItems, imageItem, textItem })\n// --- TRÍCH XUẤT DỮ LIỆU GỐC Từ extractedData ---\nlet textAnalysis = {};\nif (textItem) {\n  try {\n    const rawTextString = textItem?.content?.parts?.[0]?.text    \n    if (rawTextString) {\n      const parsedText = JSON.parse(\n        rawTextString\n          .replace(/^```json\\s*/, '')\n          .replace(/```$/, '')\n          .trim()\n      );\n      textAnalysis = parsedText.textAnalysis || {};\n    }\n  } catch (e) {\n      console.error(\"Error parsing text item:\", e.message);\n      textAnalysis = { \n          textAnalysisResult: \"Error\", \n          violationType: \"\",\n          textViolationDetails: \"Failed to parse text analysis: \" + e.message, \n          textRecommendation: \"Manual Review\" \n      };\n  }\n}\n\n// --- TRÍCH XUẤT KẾT QUẢ PHÂN TÍCH IMAGE ---\nlet imageAnalysisArray = [];\nif (imageItem) {\n  try {\n    const rawImageString = imageItem?.content?.parts?.[0]?.text;\n    if (rawImageString) {\n      imageAnalysisArray = JSON.parse(\n        rawImageString\n        .replace(/^```json\\s*/, '')\n        .replace(/```$/, '')\n        .trim()\n      ).imageResult;\n    }\n  } catch (e) {\n      console.error(\"Error parsing image item:\", e.message);\n      imageAnalysisArray = [{ \n        imageAnalysisResult: \"Error\", \n        imageViolationType: \"\",\n        imageViolationDetails: \"Failed to parse image analysis: \" + e.message,\n        imageRecommendation: \"Manual Review\"\n      }];\n  }\n}\n\n\nconsole.log({ imageAnalysisArray })\n// --- LOGIC TỔNG HỢP ---\nlet finalViolationDetails = [];\nlet violationTypes = [];\nlet finalRecommendation = 'Approve';\n\n// 1. Xử lý kết quả phân tích TEXT\nif (textAnalysis.textAnalysisResult !== \"Compliant\") {\n  if (textAnalysis.violationType) {\n      violationTypes.push(textAnalysis.violationType);\n  }\n  \n  finalViolationDetails.push(\n      `TEXT: ${textAnalysis.textViolationDetails || \"Unknown error\"}`\n  );\n  finalRecommendation = textAnalysis.textRecommendation;\n}\n\n// 2. Xử lý kết quả phân tích IMAGE\nlet ImageRecommendation = '';\nlet ImageViolationDetails = [];\nlet ImageViolationTypes = [];\nlet ImageAnalysisResult = '';\nfor (const image of imageAnalysisArray) {\n  if (image.imageAnalysisResult === \"Compliant\") {\n    continue;\n  }\n  ImageAnalysisResult = image.imageAnalysisResult;\n  if (image.violationType) {\n    violationTypes.push(image.violationType);\n    ImageViolationTypes.push(image.violationType);\n  }\n  if (image.violationDetails) {\n    finalViolationDetails.push(\n        `${image.violationDetails || \"Unknown error\"}`\n    );\n    ImageViolationDetails.push(`${image.violationDetails || \"Unknown error\"}`)\n  }\n  \n  if (!finalRecommendation?.toLowerCase().includes('reject')) {\n    finalRecommendation = image.imageRecommendation;\n    ImageRecommendation = image.imageRecommendation;\n    break;\n  }\n}\n\n// --- TẠO OBJECT KẾT QUẢ CUỐI CÙNG ---\nconst finalOutput = {  \n  // === CHI TIẾT PHÂN TÍCH TEXT ===\n  TextAnalysisResult: textAnalysis.textAnalysisResult || \"\",\n  TextViolationType: textAnalysis.violationType || \"\",\n  TextViolationDetails: textAnalysis.textViolationDetails || \"\",\n  TextRecommendation: textAnalysis.textRecommendation || \"\",\n\n  // === CHI TIẾT PHÂN IMAGES ===\n  ImageRecommendation,\n  ImageViolationDetails,\n  ImageViolationTypes,\n  ImageAnalysisResult,\n\n\n  // === KẾT QUẢ TỔNG HỢP ===\n  ViolationType: [...new Set(violationTypes)].join('; '),\n  ViolationDetails: finalViolationDetails.join(' | ') || \"None\",\n  Recommendation: finalRecommendation,\n\n  // adId to match to the sheet for writing\n  ad_id: $('4. Lấy Nội Dung HTML Của Sản Phẩm3').first().json.ad_id,\n  ads_detail: $('4. Lấy Nội Dung HTML Của Sản Phẩm3').first().json.ads_detail,\n  user_ids: $('4. Lấy Nội Dung HTML Của Sản Phẩm3').first().json.user_ids,\n  advertiser_ids: $('4. Lấy Nội Dung HTML Của Sản Phẩm3').first().json.advertiser_ids,\n  landing_page_url: $('4. Lấy Nội Dung HTML Của Sản Phẩm3').first().json.landing_page_url,\n  ad_material_ids: $('4. Lấy Nội Dung HTML Của Sản Phẩm3').first().json.ad_material_ids,\n  \n};\nconst hasBeenRejected = finalRecommendation?.toLowerCase()?.includes('reject');\nif (manualReviewImage && !hasBeenRejected) {\n  finalOutput.Recommendation = manualReviewImage;\n}\nconsole.log({ finalOutput });\n// Trả về kết quả\nreturn [finalOutput];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                2048,
+                768
+            ],
+            "id": "ce267e2d-8163-4d70-a3c1-dcde7b36eea0",
+            "name": "Parse from AI1"
+        },
+        {
+            "parameters": {
+                "fieldToSplitOut": "imageUrls",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.splitOut",
+            "typeVersion": 1,
+            "position": [
+                48,
+                224
+            ],
+            "id": "3e65493d-fee1-49c9-b112-8a62ee7da4fb",
+            "name": "Split Out"
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "128aef40-35d4-42b4-8d62-22c213598433",
+                            "name": "=ViolationDetails",
+                            "value": "The product URL is a social media link which violates the 'URL Violations and Common Issues' policy Or \"Platform’s domain is not allowed Or does not have Product URL. Please submit your own product for review.\"",
+                            "type": "string"
+                        },
+                        {
+                            "id": "7684a374-0e9a-443c-847d-62993d74f8d0",
+                            "name": "=Recommendation",
+                            "value": " Rejection",
+                            "type": "string"
+                        },
+                        {
+                            "id": "1c9db660-0595-4898-abbd-316cd247938b",
+                            "name": "=AnalysisResult",
+                            "value": "Non-Compliant",
+                            "type": "string"
+                        },
+                        {
+                            "id": "1a08a1eb-6874-47a3-ab65-c172568a1d88",
+                            "name": "=ViolationType",
+                            "value": "=URL Violation - Uncrawlable/Social Media",
+                            "type": "string"
+                        },
+                        {
+                            "id": "5199bec8-18f5-45c3-9105-256d5d5c33b8",
+                            "name": "=ProductURL",
+                            "value": "={{ $json.landing_page_url }}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "includeOtherFields": true,
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                -368,
+                1520
+            ],
+            "id": "be59cd12-1c2f-4b8b-becc-ff04d38c2ea0",
+            "name": "Edit Fields"
+        },
+        {
+            "parameters": {
+                "resource": "image",
+                "operation": "analyze",
+                "modelId": {
+                    "__rl": true,
+                    "value": "models/gemini-2.5-pro",
+                    "mode": "list",
+                    "cachedResultName": "models/gemini-2.5-pro"
+                },
+                "text": "=You are an expert AI content moderation specialist with deep expertise in visual analysis and Optical Character Recognition (OCR). Your analysis must work for all languages, not just English. Your primary goal is to analyze a batch of product images against a strict set of policies and return structured JSON data.\n\n--- CORE INSTRUCTIONS ---\n\n1. STRICTLY FOLLOW THE POLICY DOCUMENT: All decisions must be based on the rules defined in this document:\nhttps://docs.google.com/document/d/1yQSA-SRW-H3DdbJA4kZPCM5A1wqx0oj37lYFi9lHlK0/edit?tab=t.3tvv8op1twfr#heading=h.urkol5ighcaw\n\n--- ANALYSIS CRITERIA FOR EACH IMAGE ---\nImportant: \n- If the images contains contact information (phone number, website, social media handles,address)then exclude this information and do not analyze this information.\nFor each valid product image, you must analyze both its visual content and any text on it for violations, including but not limited to:\n- Trademark & Copyright: Unauthorized logos, brand names, or characters.\n- Adult & Sexually Suggestive Content: Nudity, revealing clothing, or sexually suggestive poses.\n- Hate Speech & Political Content: Symbols, flags, or text related to hate groups, political movements, or sensitive social issues.\n- Violence & Gore: Depictions of weapons, blood, injury, or violent acts.\n- Text on Image (OCR): Analyze all visible text for forbidden words, misleading claims (e.g., \"100% free\" on a paid product), or policy violations.\n\n--- IMAGE CONTEXT & JSON OUTPUT REQUIREMENTS ---\n\n1. JSON STRUCTURE: Ouput each analyze image folowing the format below. The imageResult will wrap the array which contains the result for each image. Response must be the json string format.\n\n{\n  \"imageResult\": [{\n    \"productName\": The name of the product in the image,\n  \"imageAnalysisResult\": \"Compliant\", \"Non-Compliant\", \"Flagged for Review\".  \"violationType\": \"A short category of the violation (e.g., 'Trademark', 'Adult Content', 'Violence', 'Hate Speech', 'OCR Text'). If compliant, ignored, or error, return an empty string.\",\n  \"violationDetails\": \"A concise but clear explanation of the specific violation. If compliant, return an empty string.\",\n  \"imageRecommendation\": \"Approve\", \"Reject\", \"Manual Review\". If error, return 'Manual Review'.\"\n  }]\n}\n\nNow, proceed with the analysis the images and return the result in the exact JSON format specified above.",
+                "imageUrls": "={{ $json.imageUrls.join(',') }}",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.googleGemini",
+            "typeVersion": 1,
+            "position": [
+                1328,
+                336
+            ],
+            "id": "e7e1350a-4761-4adc-ac03-ac2a53903dc0",
+            "name": "Analyze an image3",
+            "retryOnFail": false,
+            "alwaysOutputData": true,
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "GO9BKwEO1utPTwlh",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            },
+            "onError": "continueRegularOutput"
+        },
+        {
+            "parameters": {
+                "fieldToSplitOut": "imageUrls",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.splitOut",
+            "typeVersion": 1,
+            "position": [
+                -128,
+                848
+            ],
+            "id": "1dbc5155-5c5e-4996-a84e-79a7dedd82e5",
+            "name": "Split Out1"
+        },
+        {
+            "parameters": {
+                "sourceData": "=html",
+                "extractionValues": {
+                    "values": [
+                        {
+                            "key": "allText",
+                            "cssSelector": "html"
+                        },
+                        {
+                            "key": "imageUrls",
+                            "cssSelector": "img",
+                            "returnValue": "attribute",
+                            "attribute": "src",
+                            "returnArray": true
+                        },
+                        {
+                            "key": "=termsOfService",
+                            "cssSelector": "=:is(a[href*=\"terms-of-service\" i], a[href*=\"terms_of_service\" i], a[href*=\"terms\" i], a:contains(\"Terms of Service\"), a:contains(\"Terms & Conditions\"), a:contains(\"Điều khoản dịch vụ\"), a:contains(\"Social Media Terms\")):first\n",
+                            "returnValue": "=text"
+                        },
+                        {
+                            "key": "=refundPolicy",
+                            "cssSelector": "=:is(a[href*=\"refund\" i], a[href*=\"return\" i], a:contains(\"Refund Policy\"), a:contains(\"Return Policy\"), a:contains(\"Returns\"), a:contains(\"Chính sách đổi trả\"), a:contains(\"Exchange\"), a[href*=\"Exchange\" i]):first\n",
+                            "returnValue": "=text"
+                        },
+                        {
+                            "key": "=privacyPolicy",
+                            "cssSelector": "=:is(a[href*=\"privacy-policy\" i], a[href*=\"privacy\" i], a:contains(\"Privacy Policy\"), a:contains(\"Chính sách bảo mật\")):first",
+                            "returnValue": "=text"
+                        },
+                        {
+                            "key": "=shippingPolicy",
+                            "cssSelector": "=:is(a[href*=\"shipping-policy\" i], a[href*=\"shipping policy\" i], a[href*=\"delivery\" i], a:contains(\"Shipping\"), a:contains(\"Delivery\"), a:contains(\"Vận chuyển\"), a:contains(\"Shipping policy\")):first",
+                            "returnValue": "=text"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "name": "5. Cào Dữ Liệu Sản Phẩm (HTML Extract)4",
+            "type": "n8n-nodes-base.htmlExtract",
+            "typeVersion": 1,
+            "position": [
+                -1680,
+                192
+            ],
+            "id": "5a5b2af0-d264-4969-bd5f-8c56f3115e81"
+        },
+        {
+            "parameters": {
+                "url": "={{ $json.imageUrls}}",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "User-Agent",
+                            "value": "=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
+                        }
+                    ]
+                },
+                "options": {
+                    "response": {
+                        "response": {
+                            "responseFormat": "file"
+                        }
+                    }
+                }
+            },
+            "name": "read image",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                144,
+                848
+            ],
+            "id": "d8d6f181-aad6-4077-bc88-468506599c93",
+            "retryOnFail": true,
+            "notesInFlow": false,
+            "onError": "continueErrorOutput"
+        },
+        {
+            "parameters": {
+                "url": "={{ $json.imageUrls}}",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "User-Agent",
+                            "value": "=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
+                        }
+                    ]
+                },
+                "options": {
+                    "response": {
+                        "response": {
+                            "responseFormat": "file"
+                        }
+                    }
+                }
+            },
+            "name": "read image1",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                256,
+                240
+            ],
+            "id": "a432b3f4-5c1e-499b-867d-5da2aa0b0bca",
+            "retryOnFail": true,
+            "notesInFlow": false,
+            "onError": "continueErrorOutput"
+        },
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "62490610-0585-4e53-8678-fe6da7ade707",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                -3760,
+                784
+            ],
+            "id": "d1d47115-1a4b-4473-abca-9d7532a3b0f4",
+            "name": "TTM-be",
+            "webhookId": "62490610-0585-4e53-8678-fe6da7ade707"
+        },
+        {
+            "parameters": {
+                "jsCode": "return {\n  result: {\n    landing_pages_review: $input.all().map(item => {\n      delete item.json.error;\n      return item.json;\n    }),\n    queue_job_id: $('TTM-be').first().json.body.queue_job_id,\n  },\n  \n}"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -2720,
+                624
+            ],
+            "id": "e4edc29d-4e1c-4641-a759-372624bcdb63",
+            "name": "Code in JavaScript"
+        },
+        {
+            "parameters": {
+                "fieldToSplitOut": "body.landingPages",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.splitOut",
+            "typeVersion": 1,
+            "position": [
+                -3360,
+                800
+            ],
+            "id": "6642fb79-21de-4742-ba8a-a3be31854f48",
+            "name": "Split Out2"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://project-agents-taupe.vercel.app/api/webhook/callback",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ $json.result }}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.3,
+            "position": [
+                -2496,
+                224
+            ],
+            "id": "7fbc9f57-cdc5-4f68-a837-c6fb73cfd4a1",
+            "name": "Callback123"
+        }
+    ],
+    "pinData": {},
+    "connections": {
+        "If": {
+            "main": [
+                [
+                    {
+                        "node": "Edit Fields",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "4. Lấy Nội Dung HTML Của Sản Phẩm3",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "4. Lấy Nội Dung HTML Của Sản Phẩm3": {
+            "main": [
+                [
+                    {
+                        "node": "If1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Edit Fields",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Message a model4": {
+            "main": [
+                [
+                    {
+                        "node": "Merge",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript5": {
+            "main": [
+                [
+                    {
+                        "node": "Message a model4",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Loop Over Items2": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "If",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If1": {
+            "main": [
+                [
+                    {
+                        "node": "5. Cào Dữ Liệu Sản Phẩm (HTML Extract)3",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "5. Cào Dữ Liệu Sản Phẩm (HTML Extract)4",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript7": {
+            "main": [
+                [
+                    {
+                        "node": "Message a model5",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Merge3": {
+            "main": [
+                [
+                    {
+                        "node": "Parse from AI",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "5. Cào Dữ Liệu Sản Phẩm (HTML Extract)3": {
+            "main": [
+                [
+                    {
+                        "node": "Filter & Clean Images",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Extract Product Data",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Message a model5": {
+            "main": [
+                [
+                    {
+                        "node": "Merge3",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Extract Product Data": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript5",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Merge": {
+            "main": [
+                [
+                    {
+                        "node": "Parse from AI1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Filter & Clean Images1": {
+            "main": [
+                [
+                    {
+                        "node": "If2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Filter & Clean Images": {
+            "main": [
+                [
+                    {
+                        "node": "If4",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Map to manual review": {
+            "main": [
+                [
+                    {
+                        "node": "Merge3",
+                        "type": "main",
+                        "index": 1
+                    }
+                ]
+            ]
+        },
+        "Manual review 2": {
+            "main": [
+                [
+                    {
+                        "node": "Merge",
+                        "type": "main",
+                        "index": 1
+                    }
+                ]
+            ]
+        },
+        "If2": {
+            "main": [
+                [
+                    {
+                        "node": "Split Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Map to manual review",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If4": {
+            "main": [
+                [
+                    {
+                        "node": "Split Out1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Manual review 2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Analyze an image": {
+            "main": [
+                [
+                    {
+                        "node": "Merge",
+                        "type": "main",
+                        "index": 1
+                    }
+                ]
+            ]
+        },
+        "Filter success image json": {
+            "main": [
+                [
+                    {
+                        "node": "Analyze an image",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Filter success image json1": {
+            "main": [
+                [
+                    {
+                        "node": "Analyze an image3",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Extract Product Data3": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript7",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Parse from AI": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Over Items2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Parse from AI1": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Over Items2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Split Out": {
+            "main": [
+                [
+                    {
+                        "node": "read image1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Edit Fields": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Over Items2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Analyze an image3": {
+            "main": [
+                [
+                    {
+                        "node": "Merge3",
+                        "type": "main",
+                        "index": 1
+                    }
+                ]
+            ]
+        },
+        "Split Out1": {
+            "main": [
+                [
+                    {
+                        "node": "read image",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "5. Cào Dữ Liệu Sản Phẩm (HTML Extract)4": {
+            "main": [
+                [
+                    {
+                        "node": "Extract Product Data3",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Filter & Clean Images1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "read image": {
+            "main": [
+                [
+                    {
+                        "node": "Filter success image json",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Merge",
+                        "type": "main",
+                        "index": 1
+                    }
+                ]
+            ]
+        },
+        "read image1": {
+            "main": [
+                [
+                    {
+                        "node": "Filter success image json1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Merge3",
+                        "type": "main",
+                        "index": 1
+                    }
+                ]
+            ]
+        },
+        "TTM-be": {
+            "main": [
+                [
+                    {
+                        "node": "Split Out2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript": {
+            "main": [
+                [
+                    {
+                        "node": "Callback123",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Split Out2": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Over Items2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "active": true,
+    "settings": {
+        "executionOrder": "v1",
+        "availableInMCP": false
+    },
+    "versionId": "12159734-a146-40bc-afb5-971d49069f4a",
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "bb54f30464ad0297399ac28ffc2b017d17a7aed1ef125e4238fc5dc606a62d5d"
+    },
+    "id": "CRAc0KjDZUB6sbNj7NMA2",
+    "tags": []
+}

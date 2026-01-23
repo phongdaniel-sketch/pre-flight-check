@@ -255,6 +255,7 @@
                                 placeholder="https://example.com/video.mp4"
                                 class="w-full bg-slate-50 border border-gray-200 text-gray-700 rounded-xl p-3.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition shadow-sm">
                             <p class="text-[10px] text-gray-400 mt-2 ml-1">Direct link to video file</p>
+                            <p class="text-[10px] text-amber-500 mt-1 ml-1 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Max duration: 60 seconds</p>
                         </div>
                     </div>
 
@@ -407,7 +408,23 @@
 
         // Drag & Drop Visuals
         fileInput.addEventListener('change', (e) => {
-            if (fileInput.files.length) fileNameDisplay.innerText = fileInput.files[0].name;
+            if (fileInput.files.length) {
+                const file = fileInput.files[0];
+                fileNameDisplay.innerText = file.name;
+
+                // Validate Duration
+                const video = document.createElement('video');
+                video.preload = 'metadata';
+                video.onloadedmetadata = function() {
+                    window.URL.revokeObjectURL(video.src);
+                    if (video.duration > 60) {
+                        alert("Video duration must be under 1 minute. Please select a shorter video.");
+                        fileInput.value = ""; // Clear input
+                        fileNameDisplay.innerText = "Click or Drop Video";
+                    }
+                }
+                video.src = URL.createObjectURL(file);
+            }
         });
         ['dragenter', 'dragover'].forEach(eventName => {
             dropZone.addEventListener(eventName, preventDefaults, false);

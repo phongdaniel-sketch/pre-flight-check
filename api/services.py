@@ -27,22 +27,15 @@ class BenchmarkService:
 
 class N8nClient:
     def __init__(self):
-        self.video_webhook_url = os.getenv("N8N_VIDEO_WEBHOOK_URL")
+        # Force Prod URL to fix stale Vercel Env issue
+        self.video_webhook_url = "https://n88n.ecomdymedia.com/webhook/45c08981-0739-4c4f-82f5-61402bff42de"
         self.lp_webhook_url = os.getenv("N8N_LP_WEBHOOK_URL")
 
     async def analyze_video(self, video_url: str, campaign_context: dict) -> dict:
+        # Fallback if empty (shouldn't be with hardcode)
         if not self.video_webhook_url:
-            print("WARNING: N8N_VIDEO_WEBHOOK_URL not set. Using mock data.")
-            return {
-                "policy": {"is_safe": True, "reason": "[MOCK-VIDEO] Policy Check Passed"},
-                "creative": {
-                    "hook": 99.9,
-                    "pacing": 99.9,
-                    "safe_zone": True,
-                    "duration": 99.9
-                }
-            }
-
+             pass 
+        
         # Simplified Payload for Video
         # Helper to safely extract Video ID
         def extract_video_id(url: str) -> str:
@@ -61,42 +54,58 @@ class N8nClient:
             except:
                 return "unknown_video_id"
 
-        video_id = extract_video_id(video_url)
-        
-        # Audience Age mapping
-        raw_age = campaign_context.get("audience_age", "")
-        if raw_age:
-            age_groups = [f"AGE_{a.strip().replace('-', '_')}" for a in raw_age.split(",") if a.strip()]
-        else:
-            age_groups = ["AGE_18_24", "AGE_25_34"] # Default fallback 
-
+        # Updated Simplified Payload
         payload = {
-            "ad_id": "mock_ad_" + video_id,
-            "landing_page_url": campaign_context.get("lp", ""),
-            "advertiser_id": "mock_advertiser_123",
-            "video_ids": [video_id],
-            "campaign_id": "mock_campaign_123",
-            "adgroup_id": "mock_adgroup_123",
-            "campaign_automation_type": "UPGRADED_SMART_PLUS",
-            "operation_status": "ENABLE",
-            "secondary_status": "AD_STATUS_BALANCE_EXCEED",
-            "create_time": "2026-01-05 09:01:24",
-            "age_groups": age_groups,
-            "country": [campaign_context.get("country", "VN")],
-            "video_preview_url": video_url,
-            "queue_job_id": "267"
+            "creative_videos": [{
+                "video_preview_url": video_url
+            }]
         }
 
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.post(self.video_webhook_url, json=payload, timeout=60.0)
                 response.raise_for_status()
-                return response.json()
+                
+                # Added Logging
+                data = response.json()
+                print(f"[DEBUG] N8N Video Raw Response: {data}")
+                
+                # Parsing logic for New Video Workflow (creative_videos_review)
+                video_reviews = data.get("creative_videos_review", [])
+                
+                # Default Safe
+                is_safe = True
+                reason = "N8N Policy Check Passed"
+                
+                if video_reviews and isinstance(video_reviews, list) and len(video_reviews) > 0:
+                    review = video_reviews[0] # Take first video result
+                    
+                    # Logic: TextAnalysisResult or Recommendation determines safety
+                    # "TextAnalysisResult": "Non-Compliant" | "Compliant" | "Flagged for Review"
+                    # "Recommendation": "Reject Content" | "Approve Content"
+                    
+                    analysis_result = review.get("TextAnalysisResult", "Unknown")
+                    recommendation = review.get("Recommendation", "")
+                    
+                    if analysis_result == "Non-Compliant" or "Reject" in recommendation:
+                        is_safe = False
+                        # Create reason string from available details
+                        details = review.get("ViolationDetails", review.get("TextViolationDetails", ""))
+                        violation_type = review.get("ViolationType", review.get("TextViolationType", "Policy Violation"))
+                        reason = f"{violation_type}: {details}" if details else violation_type
+                    elif analysis_result == "Flagged for Review":
+                        is_safe = False # Treat Flagged as Unsafe for now (conservative)
+                        reason = "Flagged for Manual Review"
+
+                return {
+                    "policy": {"is_safe": is_safe, "reason": reason},
+                    "creative": {} 
+                }
             except Exception as e:
                 print(f"Error calling n8n Video: {e}")
                 return {
                     "policy": {"is_safe": False, "reason": f"Video Analysis Failed: {str(e)}"},
-                    "creative": {"hook": 0, "pacing": 0, "safe_zone": False, "duration": 0}
+                    "creative": {}
                 }
 
     async def analyze_landing_page(self, landing_page_url: str) -> dict:
@@ -113,9 +122,10 @@ class N8nClient:
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.post(self.lp_webhook_url, json=payload, timeout=30.0)
+                # print(f"[DEBUG] LP Status: {response.status_code}") # Helper
                 response.raise_for_status()
                 data = response.json()
-                print(f"[DEBUG] N8N Raw Response: {data}")
+                print(f"[DEBUG] N8N LP Raw Response: {data}") # KEEP THIS
                 
                 # Parsing logic for real n8n response
                 # Expected format: { "landing_pages_review": [ { "AnalysisResult": "Non-Compliant", ... } ] }
@@ -175,4 +185,3 @@ class ScoringEngine:
             return "Yellow"
         else:
             return "Red"
-

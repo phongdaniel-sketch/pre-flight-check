@@ -61,7 +61,7 @@ try:
         target_cpa: float = Form(...),
         country: str = Form(...),
         budget: float = Form(...),
-        landing_page_url: str = Form(...),
+        landing_page_url: Optional[str] = Form(None),
         audience_age: Optional[str] = Form(None),
         audience_gender: Optional[str] = Form(None),
         video_file: Optional[UploadFile] = File(None),
@@ -75,17 +75,20 @@ try:
         if video_url_input and video_url_input.strip():
             video_url = video_url_input.strip()
             has_video = True
-        elif video_file:
+        elif video_file and video_file.filename:
             has_video = True
             file_id = str(uuid.uuid4())
             file_extension = video_file.filename.split(".")[-1]
-            save_path = os.path.join(UPLOAD_DIR, f"{file_id}.{file_extension}")
+            local_save_path = os.path.join(UPLOAD_DIR, f"{file_id}.{file_extension}")
+            # expose for later use
+            video_url = "" 
+            
             try:
-                with open(save_path, "wb") as buffer:
+                with open(local_save_path, "wb") as buffer:
                     shutil.copyfileobj(video_file.file, buffer)
                 
                 if os.getenv("VERCEL"):
-                    video_url = f"file://{save_path}" 
+                    video_url = f"file://{local_save_path}" 
                 else:
                     video_url = f"http://localhost:8000/static/uploads/{file_id}.{file_extension}"
             except Exception as e:
@@ -109,6 +112,42 @@ try:
             "audience_gender": audience_gender
         }
 
+        # --- VIDEO PREPARATION ---
+        local_video_path = None
+        if has_video:
+            # If we have a URL but no local file (video_file is None), we must download it
+            if video_url_input and video_url_input.strip() and not video_file:
+                 try:
+                     print(f"Downloading video from {video_url}...", flush=True)
+                     import httpx as request_lib # Avoid conflict
+                     async with request_lib.AsyncClient() as dl_client:
+                         r = await dl_client.get(video_url, follow_redirects=True)
+                         if r.status_code == 200:
+                             file_id = str(uuid.uuid4())
+                             # Guess extension or default to mp4
+                             ext = "mp4"
+                             local_video_path = os.path.join(UPLOAD_DIR, f"{file_id}.{ext}")
+                             with open(local_video_path, "wb") as f:
+                                 f.write(r.content)
+                             print(f"Downloaded to {local_video_path}", flush=True)
+                         else:
+                             print(f"Failed to download video: {r.status_code}", flush=True)
+                 except Exception as e:
+                     print(f"Download error: {e}", flush=True)
+            
+            # If we uploaded a file (video_file is NOT None), we already saved it in Block 1
+            # But wait, in Block 1 (lines 78-92), we saved it but didn't store the path cleanly in a variable for us to use here.
+            # We strictly relied on 'video_url' construction.
+            # Let's re-save or capture the path in Block 1? 
+            # Actually, Block 1 logic is:
+            # if video_file: ... save_path = ...
+            # We can't easily access 'save_path' from there because it's inside `if/elif`.
+            # For now, let's just re-implement the path logic or rely on the fact that if it was uploaded, it's local.
+            # But 'video_url' is set to 'http://localhost...' or 'file://...'.
+            
+            if 'local_save_path' in locals() and local_save_path:
+                 local_video_path = local_save_path
+
         tasks = []
         if has_video:
             tasks.append(n8n_client.analyze_video(video_url, campaign_context))
@@ -125,16 +164,38 @@ try:
         results = await asyncio.gather(*tasks)
         video_result, lp_result = results[0], results[1]
 
+        # --- LOCAL CREATIVE ANALYSIS ---
+        local_creative_data = {}
+        if has_video and local_video_path and os.path.exists(local_video_path):
+            try:
+                print(f"Starting Local Analysis on {local_video_path}...", flush=True)
+                # Lazy import to avoid top-level heavy imports
+                from creative_analyzer import TikTokVideoAnalyzer
+                analyzer = TikTokVideoAnalyzer(local_video_path)
+                # Run in thread pool to avoid blocking async loop?
+                # For now run synchronously (MVP)
+                analysis_output = analyzer.run_full_analysis()
+                local_creative_data = analysis_output.get("creative", {})
+                print("Local Analysis Complete", flush=True)
+            except Exception as e:
+                print(f"Local Analysis Failed: {e}", flush=True)
+                local_creative_data = {}
+        else:
+            if has_video:
+                print(f"Skipping Local Analysis: local_video_path={local_video_path}, exists={os.path.exists(local_video_path) if local_video_path else False}", flush=True)
+
         # 4. Aggregation Logic
         video_policy_safe = True
         video_policy_reason = ""
-        creative_data = {}
+        creative_data = local_creative_data # Use LOCAL data instead of N8N data
 
         if video_result:
             p = video_result.get("policy", {})
+            # N8N might return "creative" key but we ignore it or merge?
+            # User said N8N is Policy ONLY now.
             video_policy_safe = p.get("is_safe", False)
             video_policy_reason = p.get("reason", "")
-            creative_data = video_result.get("creative", {})
+            # creative_data = video_result.get("creative", {}) # OVERRIDDEN by local logic
         
         lp_policy_safe = True
         lp_policy_reason = ""

@@ -194,8 +194,6 @@
                                 <option value="35-44">35-44</option>
                                 <option value="45-54">45-54</option>
                                 <option value="55-64">55-64</option>
-                                <option value="18-24, 25-34">18-34 (Gen Z)</option>
-                                <option value="35-44, 45-54">35-54 (Gen X)</option>
                             </select>
                         </div>
                     </div>
@@ -439,8 +437,19 @@
             }
         }
 
-        targetCpaInput.addEventListener('input', validateBudget);
+        function updateDefaultBudget() {
+            const cpa = parseFloat(targetCpaInput.value) || 0;
+            if (cpa > 0) {
+                budgetInput.value = cpa * 50;
+            }
+            validateBudget();
+        }
+
+        targetCpaInput.addEventListener('input', updateDefaultBudget);
         budgetInput.addEventListener('input', validateBudget);
+
+        // Initialize default budget
+        updateDefaultBudget();
 
         // Form Submit
         form.addEventListener('submit', async (e) => {

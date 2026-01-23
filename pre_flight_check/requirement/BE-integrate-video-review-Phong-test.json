@@ -1,0 +1,366 @@
+{
+    "name": "BE-integrate-video-review-Phong-test",
+    "nodes": [
+        {
+            "parameters": {
+                "jsCode": "const items = $input.all();\nconst validated = items\n  .map((item, index) => {\n    const data = item.json;\n    const errors = [];\n    \n    if (!data.video_preview_url || !data.video_preview_url.match(/^https?:\\/\\/.+/)) {\n      errors.push('Invalid URL');\n    }\n    \n    return {\n      json: {\n        video_id: data.video_id,\n        url: data.video_preview_url,\n        age_target: data.age_groups,\n        country_target: data.country,\n        video_duration: data.video_duration,\n        ads_detail: data.ads_detail,\n        row_index: index + 2,\n        validation_status: errors.length > 0 ? 'INVALID' : 'VALID',\n        validation_errors: errors.join('; ') || 'None'\n      }\n    };\n  });\n\nreturn validated;"
+            },
+            "id": "ab63981c-6d14-44a8-a2a2-490967f58c99",
+            "name": "Validate Input1",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -640,
+                320
+            ],
+            "alwaysOutputData": true
+        },
+        {
+            "parameters": {
+                "resource": "video",
+                "operation": "analyze",
+                "modelId": {
+                    "__rl": true,
+                    "value": "models/gemini-2.5-pro",
+                    "mode": "list",
+                    "cachedResultName": "models/gemini-2.5-pro"
+                },
+                "text": "=What's in this video?You are an AI data extraction specialist. Your task is to perform a comprehensive multimodal analysis of a given video input and extract key information into a structured JSON format. Your analysis must be objective and based solely on the content of the video.\n\n**ANALYSIS TASK:**\nYou MUST extract the following features from the video:\n\n1.  **OBJECT_TRACKING:** Identify significant objects, their movements, and interactions throughout the video. Note the timestamps where they appear.\n2.  **SPEECH_TRANSCRIPTION:** Provide a complete and accurate transcription of all spoken dialogue, including speaker identification if possible.\n3.  **TEXT_DETECTION:** Detect and extract all on-screen text, including its location and the timestamp of its appearance.\n4.  **LABEL_DETECTION:** Identify all relevant labels for scenes, items, and concepts present in the video (e.g., \"outdoors\", \"car\", \"celebration\", \"animal\").\n5.  **EXPLICIT_CONTENT_DETECTION:** Scan for any visual or auditory content that could be considered explicit, violent, or sensitive. Note the type of content and the specific timestamps.\n\n**OUTPUT REQUIREMENT:**\nYour output MUST be a single, clean JSON object containing the extracted data. Do not include any text or comments outside of the JSON structure.\n\n{\n  \"videoAnalysisData\": {\n    \"objectTracking\": [\n      {\n        \"object\": \"string\",\n        \"description\": \"string\",\n        \"timestamps\": [\"start_time - end_time\"]\n      }\n    ],\n    \"speechTranscription\": [\n      {\n        \"speaker\": \"string (e.g., 'Speaker 1')\",\n        \"transcript\": \"string\",\n        \"timestamp\": \"start_time - end_time\"\n      }\n    ],\n    \"textDetection\": [\n      {\n        \"text\": \"string\",\n        \"location\": \"string (e.g., 'top-left corner')\",\n        \"timestamp\": \"start_time - end_time\"\n      }\n    ],\n    \"labelDetection\": [\n      {\n        \"label\": \"string\",\n        \"confidence\": \"float (0.0 to 1.0)\",\n        \"timestamps\": [\"start_time - end_time\"]\n      }\n    ],\n    \"explicitContentDetection\": [\n      {\n        \"contentType\": \"string (e.g., 'violence', 'nudity')\",\n        \"confidence\": \"float (0.0 to 1.0)\",\n        \"timestamp\": \"start_time - end_time\"\n      }\n    ]\n  }\n}\n",
+                "videoUrls": "={{ $json.url }}",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.googleGemini",
+            "typeVersion": 1,
+            "position": [
+                368,
+                320
+            ],
+            "id": "f35f3983-f889-4c44-9a6e-575e34721cec",
+            "name": "Analyze video",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "GO9BKwEO1utPTwlh",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Dữ liệu đầu vào từ node trước đó sẽ được lưu trong biến 'items'.\n// Đây là cách làm việc tiêu chuẩn của n8n.\nconst inputData = items[0].json;\n\n// Bước 1: Trích xuất chuỗi JSON thô từ cấu trúc đầu vào\n// Cấu trúc này khớp với output của các node AI trong n8n\nconst rawText = inputData.content.parts[0].text;\n\n// Nếu bạn vẫn gặp lỗi ở dòng trên, hãy thử dòng này thay thế:\n// const rawText = inputData.text;\n\n// --- Các bước còn lại giữ nguyên ---\n\n// Bước 2: Làm sạch chuỗi\n// - Loại bỏ các dấu backticks và chữ 'json' ở đầu và cuối\n// - Trim() để xóa khoảng trắng hoặc dòng trống thừa\nlet cleanedString = rawText.replace(/```json/g, '').replace(/```/g, '').trim();\n\n// Bước 3: Chuyển đổi chuỗi đã làm sạch thành một đối tượng JSON\nlet parsedJson;\ntry {\n    parsedJson = JSON.parse(cleanedString);\n} catch (error) {\n    console.error(\"Lỗi khi parse JSON:\", error);\n    // Trả về lỗi để dễ dàng gỡ lỗi trong n8n\n    return { error: \"Không thể chuyển đổi chuỗi thành JSON\", originalString: cleanedString };\n}\n\n// Bước 4: Trích xuất dữ liệu đã sẵn sàng cho Prompt 2\nconst videoAnalysisData = parsedJson.videoAnalysisData;\n\n// Kiểm tra xem videoAnalysisData có tồn tại không trước khi trích xuất\nif (!videoAnalysisData) {\n    return { error: \"Không tìm thấy trường 'videoAnalysisData' trong JSON đã parse.\" };\n}\n\nconst objectTracking = videoAnalysisData.objectTracking || [];\nconst speechTranscription = videoAnalysisData.speechTranscription || [];\nconst textDetection = videoAnalysisData.textDetection || [];\nconst labelDetection = videoAnalysisData.labelDetection || [];\nconst explicitContentDetection = videoAnalysisData.explicitContentDetection || [];\n\n// Bước 5: Trả về một đối tượng có cấu trúc rõ ràng\n// Node tiếp theo (Prompt 2) có thể dễ dàng truy cập các trường này\nreturn {\n    objectTracking,\n    speechTranscription,\n    textDetection,\n    labelDetection,\n    explicitContentDetection,\n    fullAnalysisData: videoAnalysisData\n};\n"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                624,
+                320
+            ],
+            "id": "41c2ef9e-cc43-4391-8652-358ed2786b7e",
+            "name": "Code in JavaScript1"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Lấy dữ liệu từ node trước (items[0].json là cách làm tiêu chuẩn trong n8n)\nconst input = items[0].json;\n\n// --- BƯỚC 1: LẤY CHUỖI JSON THÔ TỪ OUTPUT CỦA AI ---\n\n// Trích xuất chuỗi text từ cấu trúc phức tạp của AI\n// Cấu trúc của bạn là: { content: { parts: [ { text: \"...\" } ] } }\nconst rawText = input.content.parts[0].text;\n\n// --- BƯỚC 2: LÀM SẠCH VÀ CHUYỂN ĐỔI CHUỖI THÀNH ĐỐI TƯỢNG JSON ---\n\nlet parsedJson;\ntry {\n  // Tìm và trích xuất nội dung bên trong khối mã ```json ... ```\n  const jsonString = rawText.match(/```json\\s*([\\s\\S]*?)\\s*```/)[1];\n  parsedJson = JSON.parse(jsonString);\n} catch (error) {\n  // Nếu có lỗi, trả về một đối tượng lỗi để dễ dàng gỡ lỗi\n  return { json: { error: \"Không thể parse JSON từ output của AI.\", details: error.message } };\n}\n\n// --- BƯỚC 3: TRÍCH XUẤT DỮ LIỆU TỪ ĐỐI TƯỢNG JSON ĐÃ LÀM SẠCH ---\n\n// Lấy videoId từ parsedJson.extractedData.videoId\nconst videoId = parsedJson.extractedData.videoId;\n\n// Lấy toàn bộ đối tượng textAnalysis\nconst textAnalysis = parsedJson.textAnalysis;\n\n// --- BƯỚC 4: TẠO ĐỐI TƯỢNG KẾT QUẢ CUỐI CÙNG ---\n\n// Tạo một đối tượng mới với cấu trúc phẳng và chính xác như bạn muốn\nconst resultObject = {\n  video_id: videoId,\n  TextAnalysisResult: textAnalysis.textAnalysisResult,\n  TextViolationType: textAnalysis.violationType,\n  TextViolationDetails: textAnalysis.textViolationDetails,\n  TextRecommendation: textAnalysis.textRecommendation,\n  Recommendation: textAnalysis.textRecommendation,\n  ViolationType: textAnalysis.violationType,\n  ViolationDetails: textAnalysis.textViolationDetails,\n  advertiser_ids: $(\"Split Out\").first().json.advertiser_ids,\n  user_ids: $(\"Split Out\").first().json.user_ids,\n  ad_material_ids: $(\"Split Out\").first().json.ad_material_ids,\n  ads_detail: $(\"If\").first().json.ads_detail,\n};\n\n// --- BƯỚC 5: TRẢ VỀ KẾT QUẢ CHO N8N ---\n\n// n8n yêu cầu trả về một mảng, trong đó mỗi phần tử có thuộc tính 'json'\nreturn [{\n  json: resultObject\n}];\n"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1232,
+                320
+            ],
+            "id": "583a4c47-1d15-4f5b-b89b-71e113c34dd1",
+            "name": "Code in JavaScript"
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "type": "n8n-nodes-base.splitInBatches",
+            "typeVersion": 3,
+            "position": [
+                -416,
+                320
+            ],
+            "id": "78023974-b1fd-4f5d-9526-5d8371d5f426",
+            "name": "Loop Over Items2"
+        },
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "45c08981-0739-4c4f-82f5-61402bff42de",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                -1152,
+                320
+            ],
+            "id": "6fdbcaa4-08ea-4389-b597-14cf1b60ec13",
+            "name": "Webhook",
+            "webhookId": "45c08981-0739-4c4f-82f5-61402bff42de"
+        },
+        {
+            "parameters": {
+                "fieldToSplitOut": "body.creative_videos",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.splitOut",
+            "typeVersion": 1,
+            "position": [
+                -944,
+                320
+            ],
+            "id": "0930d2ce-9003-43fb-8fde-994978f3448b",
+            "name": "Split Out"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://project-agents-taupe.vercel.app/api/webhook/callback",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ $json.result }}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.3,
+            "position": [
+                368,
+                -16
+            ],
+            "id": "c722cac0-b11a-43bf-86f9-c0a7bac59879",
+            "name": "Callback123"
+        },
+        {
+            "parameters": {
+                "jsCode": "return {\n  result: {\n    creative_videos_review: $input.all().map(item => item.json),\n    queue_job_id: $('Webhook').first().json.body.queue_job_id\n  },\n  \n}"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                0,
+                0
+            ],
+            "id": "786a3a45-7407-4458-a7c7-619d331f1bd8",
+            "name": "Code in JavaScript2"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 2
+                    },
+                    "conditions": [
+                        {
+                            "id": "e6f4739f-7a25-467f-9bf4-ce5d0d6e21cb",
+                            "leftValue": "={{ $json.validation_status }}",
+                            "rightValue": "VALID",
+                            "operator": {
+                                "type": "string",
+                                "operation": "equals",
+                                "name": "filter.operator.equals"
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.2,
+            "position": [
+                -32,
+                336
+            ],
+            "id": "63922bc8-c0eb-42a2-9640-78644090af34",
+            "name": "If"
+        },
+        {
+            "parameters": {
+                "modelId": {
+                    "__rl": true,
+                    "value": "models/gemini-2.5-pro",
+                    "mode": "list",
+                    "cachedResultName": "models/gemini-2.5-pro"
+                },
+                "messages": {
+                    "values": [
+                        {
+                            "content": "=You are an expert AI content moderator. Your task is to analyze video data against our policies and return a structured JSON decision. Your entire output must be in English.\n\n--- MODERATION POLICIES ---\n\nYou MUST strictly adhere to the policies outlined in this document, especially Section 3 (TikTok Advertising Creative Policy):\nhttps://docs.google.com/document/d/1yQSA-SRW-H3DdbJA4kZPCM5A1wqx0oj37lYFi9lHlK0/edit?tab=t.duhkk5p6k7tr#heading=h.2lcoe2rytn0q\n\nNote on Disguises: Items used to disguise identity (e.g., masks, wigs, costumes, hoodies or jackets with attached masks) are allowed only if they are not linked to or implying criminal behavior.\n\n--- VIDEO ANALYSIS DATA ---\n- Video analysis data:{{ JSON.stringify($('Code in JavaScript1' ).item.json) }}\n- Target age: {{ $('If').item.json.age_target }}\n- Target country: {{ $('If').item.json.country_target }}\n\n--- DECISION LOGIC ---\n\nYou are an AI specializing in video content analysis. Analyze the `INPUT DATA` based on the `POLICIES` and execute the following logic in the specified order of priority:\n\n**Step 1: Analyze Video Content**\n- Analyze `objectTracking` to identify key objects and actions, paying special attention to items that disguise identity.\n- Analyze `speechTranscription` and `textDetection` to identify advertising messages and product claims.\n\n**Step 2: Evaluate Against Policies**\nPerform the checks in the following order:\n\n1.  **Special Condition (Flag for Review):**\n    - **Check if BOTH of the following criteria are met:**\n        a. The content violates the `Advertising Policy` (e.g., exaggeration, false claims).\n        b. Based on `objectTracking`, the video contains footage of individuals using items to disguise their identity (such as masks, hoods covering the face, or balaclavas).\n    - If **BOTH** criteria are true, the result **MUST** be \"Flagged for Review\".\n\n2.  **Primary Violation (Non-Compliant):**\n    - If the Special Condition is not met, check for individual violations:\n        a. Does the content violate the `Advertising Policy`?\n        b. Does the content violate the `Target Audience Policy` (regarding age or country)?\n    - If **ANY** of these violations are found, the result is \"Non-Compliant\".\n\n3.  **Default (Compliant):**\n    - If no violations are found in the steps above, the result is \"Compliant\".\n\n--- OUTPUT REQUIREMENT ---\n\nYour output MUST be a single, clean JSON object. Do not include any text outside of it.\n{\n\"extractedData\": {\n\"videoId\": \"{{ $('If').item.json.video_id }}\"\n},\n\"textAnalysis\": {\n\"textAnalysisResult\": \"Compliant\" | \"Non-Compliant\" | \"Flagged for Review\",\n\"violationType\": \"A short category of the violation (e.g., 'exaggerate product quality', 'hate speech', 'sexually suggestive'). If compliant, return an empty string.\",\n\"textViolationDetails\": \"If Non-Compliant or Flagged, provide a detailed explanation in English, referencing the specific text/speech from the input and the policy rule it breaks. If Compliant, this should be an empty string.\",\n\"textRecommendation\": \"Approve Content\" | \"Reject Content\" | \"Manual Review\"\n}\n}"
+                        }
+                    ]
+                },
+                "options": {
+                    "temperature": 0.3,
+                    "topP": 1
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.googleGemini",
+            "typeVersion": 1,
+            "position": [
+                864,
+                320
+            ],
+            "id": "57b12945-61c1-423d-8683-1d593309fa90",
+            "name": "Message a model1",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "GO9BKwEO1utPTwlh",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json.result }}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
+            "position": [
+                336,
+                -176
+            ],
+            "id": "7f36acdf-a24c-40ca-8105-c5d440d85d31",
+            "name": "Respond to Webhook"
+        }
+    ],
+    "pinData": {},
+    "connections": {
+        "Validate Input1": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Over Items2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Analyze video": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript1": {
+            "main": [
+                [
+                    {
+                        "node": "Message a model1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Over Items2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Loop Over Items2": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "If",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Webhook": {
+            "main": [
+                []
+            ]
+        },
+        "Split Out": {
+            "main": [
+                [
+                    {
+                        "node": "Validate Input1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript2": {
+            "main": [
+                [
+                    {
+                        "node": "Respond to Webhook",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If": {
+            "main": [
+                [
+                    {
+                        "node": "Analyze video",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Loop Over Items2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Message a model1": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "active": true,
+    "settings": {
+        "executionOrder": "v1",
+        "availableInMCP": false
+    },
+    "versionId": "d8456ea3-2ba9-48c1-a67b-af6c7839ff1f",
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "bb54f30464ad0297399ac28ffc2b017d17a7aed1ef125e4238fc5dc606a62d5d"
+    },
+    "id": "gc0MYpNiPifNCioByjJ4a",
+    "tags": []
+}
