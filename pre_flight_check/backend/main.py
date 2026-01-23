@@ -136,7 +136,13 @@ try:
                      print(f"Downloading video from {video_url}...", flush=True)
                      import httpx as request_lib
                      async with request_lib.AsyncClient() as dl_client:
-                         r = await dl_client.get(video_url, follow_redirects=True)
+                         headers = {
+                             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+                             "Referer": "https://www.tiktok.com/"
+                         }
+                         print(f"Requesting video with headers...", flush=True)
+                         r = await dl_client.get(video_url, follow_redirects=True, headers=headers, timeout=30.0)
+                         
                          if r.status_code == 200:
                              file_id = str(uuid.uuid4())
                              ext = "mp4"
