@@ -44,7 +44,14 @@ try:
         # Fallback to local static if exists
         STATIC_DIR = os.path.join(BASE_DIR, "static")
 
-    UPLOAD_DIR = os.path.join(STATIC_DIR, "uploads")
+    # Vercel / Serverless Environment Check
+    # On Vercel, the filesystem is read-only except for /tmp
+    IS_VERCEL = os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME")
+    
+    if IS_VERCEL:
+        UPLOAD_DIR = "/tmp"
+    else:
+        UPLOAD_DIR = os.path.join(STATIC_DIR, "uploads")
 
     try:
         os.makedirs(UPLOAD_DIR, exist_ok=True)
