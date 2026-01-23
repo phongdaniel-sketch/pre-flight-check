@@ -572,8 +572,32 @@
             }
 
             // Assessment
-            document.getElementById('assessmentText').innerHTML = `<span class="font-bold text-gray-800">${data.message}</span> ` +
-                (data.policy_check.is_safe ? " Financial benchmarking is " + (data.benchmark_score > 80 ? "<span class='text-pastel-mint font-bold'>strong.</span>" : "<span class='text-pastel-butter font-bold'>moderate.</span>") : " <span class='text-pastel-coral font-bold'>Policy constraints found.</span>");
+            const assessmentEl = document.getElementById('assessmentText');
+            let assessmentHTML = '';
+
+            // 1. Cleaner Message Parsing
+            let msg = data.message.replace('Analysis Complete. ', '');
+            if (msg === 'Policy Safe') msg = 'No policy violations found.';
+
+            const points = msg.split('; ');
+            const formattedPoints = points.map(p => {
+                if (p.startsWith('Video:')) return `<div class="mb-2"><span class="font-bold text-indigo-600 block mb-1">Video Analysis</span><span class="text-sm text-gray-600">${p.replace('Video:', '').trim()}</span></div>`;
+                if (p.startsWith('LP:')) return `<div class="mb-2"><span class="font-bold text-indigo-600 block mb-1">Landing Page Analysis</span><span class="text-sm text-gray-600">${p.replace('LP:', '').trim()}</span></div>`;
+                return `<div class="text-sm text-gray-600 mb-2">${p}</div>`;
+            }).join('');
+
+            assessmentHTML += `<div class="mb-4">${formattedPoints}</div>`;
+
+            // 2. Financial Context
+            let financialHTML = '';
+            if (data.policy_check.is_safe) {
+                const strength = data.benchmark_score > 80 ? "<span class='text-pastel-mint font-bold'>Strong</span>" : "<span class='text-pastel-butter font-bold'>Moderate</span>";
+                financialHTML = `<div class="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100"><div class="text-xs font-bold text-indigo-400 uppercase tracking-wide mb-1">Financial Potential</div><div class="text-sm text-gray-700">Benchmarking indicates <span class="lowercase">${strength}</span> performance potential based on current metrics.</div></div>`;
+            } else {
+                financialHTML = `<div class="p-3 bg-red-50 rounded-xl border border-red-100"><div class="text-xs font-bold text-red-400 uppercase tracking-wide mb-1">Action Required</div><div class="text-sm text-red-600 font-medium">Please resolve policy violations to see financial benchmarking.</div></div>`;
+            }
+
+            assessmentEl.innerHTML = assessmentHTML + financialHTML;
         }
     </script>
 </body>
