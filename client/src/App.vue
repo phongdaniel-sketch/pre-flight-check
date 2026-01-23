@@ -38,7 +38,7 @@ const resetAnalysis = () => {
         </div>
         <div>
           <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Pre-flight Check</h1>
-          <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Campaign Validation Tool</p>
+          <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Benchmark Tool</p>
         </div>
       </div>
 
