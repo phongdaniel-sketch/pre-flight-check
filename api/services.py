@@ -95,7 +95,8 @@ class N8nClient:
                         reason = f"{violation_type}: {details}" if details else violation_type
                     elif analysis_result == "Flagged for Review":
                         is_safe = False # Treat Flagged as Unsafe for now (conservative)
-                        reason = "Flagged for Manual Review"
+                        details = review.get("ViolationDetails", review.get("TextViolationDetails", ""))
+                        reason = f"Flagged for Manual Review: {details}" if details else "Flagged for Manual Review"
 
                 return {
                     "policy": {"is_safe": is_safe, "reason": reason},
