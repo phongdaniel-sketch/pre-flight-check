@@ -269,7 +269,7 @@
             "main": [
                 [
                     {
-                        "node": "Loop Over Items2",
+                        "node": "Code in JavaScript2",
                         "type": "main",
                         "index": 0
                     }
@@ -280,23 +280,23 @@
             "main": [
                 [
                     {
-                        "node": "Code in JavaScript2",
-                        "type": "main",
-                        "index": 0
-                    }
-                ],
-                [
-                    {
                         "node": "If",
                         "type": "main",
                         "index": 0
                     }
-                ]
+                ],
+                []
             ]
         },
         "Webhook": {
             "main": [
-                []
+                [
+                    {
+                        "node": "Split Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
             ]
         },
         "Split Out": {
@@ -332,7 +332,7 @@
                 ],
                 [
                     {
-                        "node": "Loop Over Items2",
+                        "node": "Code in JavaScript2",
                         "type": "main",
                         "index": 0
                     }
