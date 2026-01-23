@@ -468,6 +468,17 @@
                 return;
             }
 
+            // Vercel Limit Check (4.5MB)
+            if (fileInput.files.length > 0) {
+                const fileSizeMB = fileInput.files[0].size / (1024 * 1024);
+                if (fileSizeMB > 4.5) {
+                    const err = document.getElementById('errorMsg');
+                    err.innerHTML = `File too large (${fileSizeMB.toFixed(1)}MB). Vercel limits uploads to 4.5MB.<br>👉 <b>Please use "Video Link" option instead.</b>`;
+                    err.classList.remove('hidden');
+                    return;
+                }
+            }
+
             const btnText = document.getElementById('btnText');
             const btnSpinner = document.getElementById('btnSpinner');
             const errorMsg = document.getElementById('errorMsg');
@@ -484,8 +495,20 @@
                 });
 
                 if (!response.ok) {
-                    const err = await response.json();
-                    throw new Error(err.detail || 'Analysis failed');
+                    let errorMessage = 'Analysis failed';
+                    try {
+                        const err = await response.json();
+                        errorMessage = err.detail || errorMessage;
+                    } catch (parseErr) {
+                        // Fallback for non-JSON errors (like 413 Entity Too Large HTML)
+                        if (response.status === 413) {
+                            errorMessage = "File too large. Server rejected upload.";
+                        } else {
+                            errorMessage = `Server Error (${response.status}): Check console for details.`;
+                        }
+                        console.error("Non-JSON Response:", parseErr);
+                    }
+                    throw new Error(errorMessage);
                 }
 
                 const data = await response.json();
@@ -493,7 +516,7 @@
 
             } catch (err) {
                 console.error(err);
-                errorMsg.innerText = err.message;
+                errorMsg.innerHTML = err.message; // Use innerHTML to support bold tags
                 errorMsg.classList.remove('hidden');
             } finally {
                 btnText.classList.remove('hidden');
