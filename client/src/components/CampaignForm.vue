@@ -13,6 +13,8 @@ const formData = ref({
   budget: 2500,
   country: 'US',
   landing_page_url: '',
+  audience_age: 'All Ages',
+  audience_gender: 'All',
   video_url_input: '',
   video_file: null // for file object
 });
@@ -47,6 +49,8 @@ const submitForm = async () => {
     data.append('target_cpa', formData.value.target_cpa);
     data.append('budget', formData.value.budget);
     data.append('country', formData.value.country);
+    data.append('audience_age', formData.value.audience_age);
+    data.append('audience_gender', formData.value.audience_gender);
     
     if (formData.value.landing_page_url) {
         data.append('landing_page_url', formData.value.landing_page_url);
@@ -128,6 +132,28 @@ const industries = [
             <option value="VN">Vietnam (VN)</option>
             <option value="Global">Global</option>
          </select>
+      </div>
+
+      <!-- Gender & Age -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Gender</label>
+          <select v-model="formData.audience_gender" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium">
+            <option value="All">All</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Age</label>
+          <select v-model="formData.audience_age" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium">
+            <option value="All Ages">All Ages</option>
+            <option value="18-24">18-24</option>
+            <option value="25-34">25-34</option>
+            <option value="35-44">35-44</option>
+            <option value="45+">45+</option>
+          </select>
+        </div>
       </div>
 
       <!-- Landing Page -->

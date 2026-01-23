@@ -103,51 +103,62 @@ const gaugeColorClass = computed(() => {
 
 <template>
   <div class="space-y-6 animate-fade-in-up">
-    <!-- Top Row: Scores -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-       <!-- Score Gauge -->
-       <div class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-50 flex items-center justify-center relative">
-          <div class="w-40 h-40 relative">
-             <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="45" fill="none" stroke="#F3F4F6" stroke-width="8"></circle>
-                <circle cx="50" cy="50" r="45" fill="none" :class="gaugeColorClass" stroke="currentColor" stroke-width="8" stroke-linecap="round" :stroke-dasharray="gaugeDashArray" stroke-dashoffset="0" class="transition-all duration-1000 ease-out"></circle>
-             </svg>
-             <div class="absolute inset-0 flex flex-col items-center justify-center">
-                <span class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Score</span>
-                <span class="text-4xl font-extrabold text-gray-800">{{ Math.round(data.predictive_score) }}</span>
-                <span :class="['px-2 py-0.5 rounded text-[10px] font-bold uppercase mt-1 bg-gray-100', gaugeColorClass.replace('text-', 'text-')]">
-                    {{ data.final_rating }}
-                </span>
-             </div>
-          </div>
-       </div>
+    <!-- Top Row: Scores and Metrics -->
+    <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden">
+        <!-- Floating Watermark/Icon style from reference -->
+        <div class="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
+            <i class="fa-solid fa-chart-line text-9xl text-indigo-900"></i>
+        </div>
 
-       <!-- Mini Metrics -->
-       <div class="space-y-4">
-          <!-- Benchmark -->
-          <div class="bg-white p-5 rounded-2xl shadow-sm border border-indigo-50 flex flex-col justify-center">
-             <div class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-2">Benchmark Score</div>
-             <div class="flex items-baseline gap-2">
-                <span class="text-3xl font-extrabold text-gray-800" id="benchmarkVal">{{ Math.round(data.benchmark_score) }}</span>
-                <span class="text-xs text-gray-400">/ 100</span>
-             </div>
-             <div class="w-full bg-gray-100 h-1.5 rounded-full mt-3 overflow-hidden">
-                <div class="h-full bg-indigo-500 rounded-full transition-all duration-1000" :style="{width: data.benchmark_score + '%'}"></div>
-             </div>
-          </div>
-          
-           <!-- DNA Score -->
-           <div class="bg-white p-5 rounded-2xl shadow-sm border border-indigo-50 flex flex-col justify-center">
-             <div class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-2">DNA Score</div>
-             <div class="flex items-baseline gap-2">
-                <span class="text-3xl font-extrabold text-gray-800">{{ data.dna_score.toFixed(1) }}</span>
-                <span class="text-xs text-gray-400">/ 100</span>
-             </div>
-              <div class="w-full bg-gray-100 h-1.5 rounded-full mt-3 overflow-hidden">
-                <div class="h-full bg-purple-500 rounded-full transition-all duration-1000" :style="{width: data.dna_score + '%'}"></div>
-             </div>
-          </div>
-       </div>
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center relative z-10">
+            <!-- Left: Score Gauge -->
+            <div class="md:col-span-5 flex flex-col items-center border-r border-gray-100 pr-8">
+                <div class="w-48 h-48 relative mb-4">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="#F3F4F6" stroke-width="6"></circle>
+                        <circle cx="50" cy="50" r="45" fill="none" :class="gaugeColorClass" stroke="currentColor" stroke-width="6" stroke-linecap="round" :stroke-dasharray="gaugeDashArray" stroke-dashoffset="0" class="transition-all duration-1000 ease-out shadow-lg"></circle>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Score</span>
+                        <div class="flex items-center gap-1">
+                             <div class="w-3 h-1.5 rounded-full" :class="data.final_rating === 'Red' ? 'bg-pastel-coral' : 'bg-gray-200'"></div>
+                             <div class="w-3 h-1.5 rounded-full" :class="data.final_rating === 'Yellow' ? 'bg-pastel-canary' : 'bg-gray-200'"></div>
+                             <div class="w-3 h-1.5 rounded-full" :class="data.final_rating === 'Green' ? 'bg-pastel-mint' : 'bg-gray-200'"></div>
+                        </div>
+                        <span class="text-4xl font-extrabold text-gray-800 mt-2">{{ Math.round(data.predictive_score) }}</span>
+                         <span class="px-3 py-1 bg-gray-100 rounded-full text-[10px] font-bold text-gray-500 uppercase mt-2">Ready</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Middle/Right: Benchmark & DNA Cards -->
+            <div class="md:col-span-7 grid grid-cols-2 gap-6">
+                <!-- Benchmark Card -->
+                <div class="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-50 flex flex-col items-center justify-center text-center">
+                    <div class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-3">Benchmark</div>
+                    <span class="text-3xl font-extrabold text-indigo-900" id="benchmarkVal">{{ Math.round(data.benchmark_score) }}</span>
+                    <div class="w-12 h-1 bg-indigo-200 rounded-full mt-2"></div>
+                </div>
+
+                <!-- DNA Score Card -->
+                <div class="bg-purple-50/50 p-6 rounded-2xl border border-purple-50 flex flex-col items-center justify-center text-center">
+                    <div class="text-xs font-bold text-purple-400 uppercase tracking-widest mb-3">DNA Score</div>
+                     <span class="text-3xl font-extrabold text-purple-900">{{ data.dna_score.toFixed(0) }}</span>
+                     <div class="w-12 h-1 bg-purple-200 rounded-full mt-2"></div>
+                </div>
+
+                 <!-- Policy Check Status Row (Spanning 2 cols) -->
+                <div class="col-span-2 bg-white border border-gray-100 p-4 rounded-xl flex items-center justify-between px-6 shadow-sm">
+                    <span class="text-sm font-semibold text-gray-600">Policy Check</span>
+                     <span v-if="isSafe" class="flex items-center gap-2 text-pastel-mint font-bold text-sm">
+                        <i class="fa-solid fa-check"></i> Passed
+                    </span>
+                    <span v-else class="flex items-center gap-2 text-pastel-coral font-bold text-sm">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Issues Found
+                    </span>
+                </div>
+            </div>
+        </div>
     </div>
     
     <!-- Policy Check -->
