@@ -35,7 +35,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // For Local Dev
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (!process.env.VERCEL) {
     app.listen(port, () => {
         console.log(`Server running at http://localhost:${port}`);
     });
