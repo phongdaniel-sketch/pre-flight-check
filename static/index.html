@@ -536,29 +536,51 @@
             document.getElementById('benchmarkVal').innerText = Math.round(data.benchmark_score);
             document.getElementById('dnaVal').innerText = data.dna_score.toFixed(1);
 
-// Policy
-const policyEl = document.getElementById('policyVal');
-const policyContainer = document.getElementById('policyContainer');
+            // Policy
+            const policyEl = document.getElementById('policyVal');
+            const policyContainer = document.getElementById('policyContainer');
 
-if (data.policy_check.is_safe) {
-    // Reset layout for safe state
-    if (policyContainer) policyContainer.className = "col-span-2 bg-cream p-4 rounded-2xl border border-indigo-100 flex items-center justify-between px-6";
-    policyEl.innerHTML = '<i class="fa-solid fa-shield-check text-pastel-mint"></i> Safe';
-    policyEl.className = 'text-sm font-bold text-gray-700';
-} else {
-    // Stack layout for error details
-    if (policyContainer) policyContainer.className = "col-span-2 bg-cream p-5 rounded-2xl border border-indigo-100 flex flex-col gap-3 px-6";
+            if (data.policy_check.is_safe) {
+                // Reset layout for safe state
+                if (policyContainer) policyContainer.className = "col-span-2 bg-cream p-4 rounded-2xl border border-indigo-100 flex items-center justify-between px-6";
+                policyEl.innerHTML = '<i class="fa-solid fa-shield-check text-pastel-mint"></i> Safe';
+                policyEl.className = 'text-sm font-bold text-gray-700';
+            } else {
+                // Stack layout for error details
+                if (policyContainer) policyContainer.className = "col-span-2 bg-cream p-5 rounded-2xl border border-indigo-100 flex flex-col gap-3 px-6";
 
-    const reasons = (data.policy_check.reason || 'Unsafe').split('; ');
-    const formattedReasons = reasons.map(r => {
-        if (r.startsWith('Video:')) return `<div><span class="font-bold text-indigo-500">Video Violation:</span> ${r.replace('Video:', '')}</div>`;
-        if (r.startsWith('LP:')) return `<div><span class="font-bold text-indigo-500">Landing Page Violation:</span> ${r.replace('LP:', '')}</div>`;
-        return `<div>${r}</div>`;
-    }).join('<div class="h-1"></div>'); // Spacer
+                const reasons = (data.policy_check.reason || 'Unsafe').split('; ');
+                const formattedReasons = reasons.map(r => {
+                    let badge = '';
+                    let content = r;
 
-    policyEl.innerHTML = `<div class="flex flex-col gap-1 w-full"><div class="flex items-center gap-2 mb-1"><i class="fa-solid fa-triangle-exclamation text-pastel-coral"></i> <span class="uppercase font-bold text-xs text-pastel-coral">Policy Warning</span></div>${formattedReasons}</div>`;
-    policyEl.className = 'text-xs text-gray-600 font-medium text-left w-full';
-}
+                    if (r.startsWith('Video:')) {
+                        content = r.replace('Video:', '').trim();
+                        badge = '<span class="font-bold text-indigo-500 text-xs uppercase tracking-wide mb-1 block">Video Violation:</span>';
+                    } else if (r.startsWith('LP:')) {
+                        content = r.replace('LP:', '').trim();
+                        badge = '<span class="font-bold text-indigo-500 text-xs uppercase tracking-wide mb-1 block">Landing Page Violation:</span>';
+                    }
+
+                    // Handle "Flagged for Manual Review" specifically
+                    if (content.includes('Flagged for Manual Review:')) {
+                        const parts = content.split('Flagged for Manual Review:');
+                        const details = parts[1].trim();
+                        content = `
+                            <div class="bg-white/50 p-2 rounded-md border border-indigo-100/50">
+                                <span class="font-bold text-indigo-600">Flagged for Manual Review</span>
+                                <div class="mt-1 text-gray-600 leading-snug whitespace-pre-wrap">${details}</div>
+                            </div>`;
+                    } else {
+                        content = `<span>${content}</span>`;
+                    }
+
+                    return `<div class="mb-2">${badge}${content}</div>`;
+                }).join('');
+
+                policyEl.innerHTML = `<div class="flex flex-col gap-1 w-full"><div class="flex items-center gap-2 mb-1"><i class="fa-solid fa-triangle-exclamation text-pastel-coral"></i> <span class="uppercase font-bold text-xs text-pastel-coral">Policy Warning</span></div>${formattedReasons}</div>`;
+                policyEl.className = 'text-xs text-gray-600 font-medium text-left w-full';
+            }
 
 
             // Creative
@@ -588,11 +610,32 @@ if (data.policy_check.is_safe) {
             if (msg === 'Policy Safe') msg = 'No policy violations found.';
 
             const points = msg.split('; ');
-            const formattedPoints = points.map(p => {
-                if (p.startsWith('Video:')) return `<div class="mb-2"><span class="font-bold text-indigo-600 block mb-1">Video Analysis</span><span class="text-sm text-gray-600">${p.replace('Video:', '').trim()}</span></div>`;
-                if (p.startsWith('LP:')) return `<div class="mb-2"><span class="font-bold text-indigo-600 block mb-1">Landing Page Analysis</span><span class="text-sm text-gray-600">${p.replace('LP:', '').trim()}</span></div>`;
-                return `<div class="text-sm text-gray-600 mb-2">${p}</div>`;
-            }).join('');
+            const formattedPoints = points.map(r => {
+                let badge = '';
+                let content = r;
+
+                if (r.startsWith('Video:')) {
+                    content = r.replace('Video:', '').trim();
+                    badge = '<span class="font-bold text-indigo-500 block mb-1">Video Violation</span>';
+                } else if (r.startsWith('LP:')) {
+                    content = r.replace('LP:', '').trim();
+                    badge = '<span class="font-bold text-indigo-500 block mb-1">Landing Page Violation</span>';
+                }
+
+                // Special case for Flagged
+                if (content.includes('Flagged for Manual Review:')) {
+                    const parts = content.split('Flagged for Manual Review:');
+                    const details = parts[1] ? parts[1].trim() : '';
+                    content = `<div class="bg-indigo-50 p-2 rounded-lg border border-indigo-100 mt-1">
+                            <span class="font-bold text-indigo-700 text-xs uppercase tracking-wide px-2 py-0.5 bg-white rounded border border-indigo-200">Flagged for Review</span>
+                            <div class="mt-2 text-gray-700 leading-relaxed text-xs">${details || 'Manual review required.'}</div>
+                        </div>`;
+                } else {
+                    content = `<div class="text-gray-600">${content}</div>`;
+                }
+
+                return `<div>${badge}${content}</div>`;
+            }).join('<div class="h-3"></div>'); // Spacer
 
             assessmentHTML += `<div class="mb-4">${formattedPoints}</div>`;
 
