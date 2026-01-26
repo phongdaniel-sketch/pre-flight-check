@@ -76,14 +76,30 @@ const updateBudget = () => {
 const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-        // Validation (Client side) - Firebase can handle large files
+        // 1. Size Validation (Max 100MB)
         const sizeMB = file.size / (1024 * 1024);
-        if (sizeMB > 500) {
-            alert(`File too large (${sizeMB.toFixed(1)}MB). Please keep under 500MB.`);
+        if (sizeMB > 100) {
+            alert(`File too large (${sizeMB.toFixed(1)}MB). Please keep under 100MB.`);
             event.target.value = ''; 
             return;
         }
-        formData.value.video_file = file;
+
+        // 2. Duration Validation (Max 60s)
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.onloadedmetadata = function() {
+            window.URL.revokeObjectURL(video.src);
+            const duration = video.duration;
+            if (duration > 60) {
+                 alert(`Video is too long (${duration.toFixed(1)}s). Max duration is 60 seconds.`);
+                 event.target.value = '';
+                 formData.value.video_file = null;
+                 return;
+            }
+            // Valid
+            formData.value.video_file = file;
+        }
+        video.src = URL.createObjectURL(file);
     }
 };
 
@@ -183,12 +199,12 @@ const industries = [
     { id: 'Pets', label: 'Pets ($45)', cpa: 45 },
     { id: 'Apps', label: 'Apps ($25)', cpa: 25 },
     { id: 'Home Improvement', label: 'Home Improvement ($100)', cpa: 100 },
-    { id: 'Apparel & Accessories', label: 'Apparel & Accessories ($120)', cpa: 120 },
+    { id: 'Apparel & Accessories', label: 'Apparel & Accessories ($80)', cpa: 80 },
     { id: 'News & Entertainment', label: 'News & Entertainment ($30)', cpa: 30 },
     { id: 'Business Services', label: 'Business Services ($200)', cpa: 200 },
     { id: 'Games', label: 'Games ($20)', cpa: 20 },
     { id: 'Life Services', label: 'Life Services ($80)', cpa: 80 },
-    { id: 'Food & Beverage', label: 'Food & Beverage ($260)', cpa: 260 },
+    { id: 'Food & Beverage', label: 'Food & Beverage ($60)', cpa: 60 },
     { id: 'Sports & Outdoors', label: 'Sports & Outdoors ($90)', cpa: 90 },
     { id: 'E-Commerce (Non-app)', label: 'E-Commerce (Non-app) ($325)', cpa: 325 }
 ];
@@ -380,7 +396,10 @@ const selectIndustry = (industry) => {
                 <input type="file" accept="video/*" @change="handleFileChange" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                 <i class="fa-solid fa-cloud-arrow-up text-gray-400 text-2xl mb-2"></i>
                 <p class="text-xs text-gray-500 font-medium">{{ formData.video_file ? formData.video_file.name : 'Click to Upload Video' }}</p>
-                <p class="text-[10px] text-gray-400 mt-1">Max 100MB (Local), 4.5MB (Vercel)</p>
+                <div class="text-[10px] text-gray-400 mt-2 space-y-0.5">
+                    <p>Size: ≤ 100MB.</p>
+                    <p>Duration: ≤ 60 seconds.</p>
+                </div>
             </div>
         </div>
 
