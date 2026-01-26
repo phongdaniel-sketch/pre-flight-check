@@ -81,30 +81,31 @@ export class CreativeAnalyzer {
     }
 
     detectScenes() {
-        return new Promise((resolve, reject) => {
-            const scenes = [];
-            ffmpeg(this.videoPath)
-                .inputOptions(['-t 10']) // LIMIT ANALYSIS TO FIRST 10 SECONDS to prevent Timeout
-                .videoFilters("select='gt(scene,0.3)',showinfo")
-                .format('null')
-                .on('stderr', (stderrLine) => {
-                    // Parse stderr for showinfo
-                    // Line format: ... n:   8 pts:  26692 pts_time:0.33365 ...
-                    if (stderrLine.includes('pts_time:')) {
-                        const match = stderrLine.match(/pts_time:([0-9.]+)/);
-                        if (match && match[1]) {
-                            scenes.push(parseFloat(match[1]));
-                        }
+        // Limit analysis duration to prevent Serverless Function Timeout (Netlify/Vercel)
+        // Default to 10s (Hobby Plan safe), can be increased via env var if on Pro Plan.
+        const analysisLimit = process.env.VIDEO_ANALYSIS_LIMIT_SECONDS || '10';
+
+        ffmpeg(this.videoPath)
+            .inputOptions([`-t ${analysisLimit}`])
+            .videoFilters("select='gt(scene,0.3)',showinfo")
+            .format('null')
+            .on('stderr', (stderrLine) => {
+                // Parse stderr for showinfo
+                // Line format: ... n:   8 pts:  26692 pts_time:0.33365 ...
+                if (stderrLine.includes('pts_time:')) {
+                    const match = stderrLine.match(/pts_time:([0-9.]+)/);
+                    if (match && match[1]) {
+                        scenes.push(parseFloat(match[1]));
                     }
-                })
-                .on('end', () => {
-                    resolve(scenes);
-                })
-                .on('error', (err) => {
-                    console.error("FFmpeg Error:", err);
-                    resolve([]); // Fallback to 0 scenes
-                })
-                .save('/dev/null');
-        });
+                }
+            })
+            .on('end', () => {
+                resolve(scenes);
+            })
+            .on('error', (err) => {
+                console.error("FFmpeg Error:", err);
+                resolve([]); // Fallback to 0 scenes
+            })
+            .save('/dev/null');
     }
 }
