@@ -9,5 +9,10 @@
             "source": "/((?!assets/|favicon.ico).*)",
             "destination": "/index.html"
         }
-    ]
+    ],
+    "functions": {
+        "api/**/*.js": {
+            "maxDuration": 60
+        }
+    }
 }

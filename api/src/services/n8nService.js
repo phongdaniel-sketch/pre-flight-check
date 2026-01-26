@@ -19,7 +19,8 @@ export class N8nClient {
 
         try {
             console.log(`[N8N] Sending Video to: ${this.videoWebhookUrl}`);
-            const response = await axios.post(this.videoWebhookUrl, payload, { timeout: 60000 });
+            // Increase timeout to 5 minutes for long video processing
+            const response = await axios.post(this.videoWebhookUrl, payload, { timeout: 300000 });
             const data = response.data;
 
             console.log("[DEBUG] N8N Video Raw Response:", JSON.stringify(data));
