@@ -5,10 +5,10 @@ import Dashboard from './components/Dashboard.vue';
 import AnalyzingState from './components/AnalyzingState.vue';
 
 const sampleData = {
-  predictive_score: 85.0,
-  final_rating: 'Green',
-  benchmark_score: 78.5,
-  dna_score: 92.3,
+  predictive_score: 45.0,
+  final_rating: 'Red',
+  benchmark_score: 15.0,
+  dna_score: 58.0,
   message: 'Policy Safe',
   policy_check: {
     is_safe: true,
@@ -108,7 +108,7 @@ if (hostname === PROD_HOSTNAME) {
         </div>
 
         <!-- Right Column: Dashboard or Placeholder -->
-        <div class="lg:col-span-8 relative">
+        <div class="lg:col-span-8 relative flex flex-col">
           <!-- Real Data -->
           <Dashboard v-if="analysisData && !isLoading" :data="analysisData" />
 
@@ -116,7 +116,7 @@ if (hostname === PROD_HOSTNAME) {
           <AnalyzingState v-else-if="isLoading" />
           
           <!-- Sample Data / Empty State -->
-          <div v-else class="relative">
+          <div v-else class="relative h-full">
              <div class="absolute inset-0 z-10 bg-white/60 backdrop-blur-[2px] rounded-3xl flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-indigo-100/50">
                 <div class="bg-white p-4 rounded-full shadow-lg mb-4">
                    <i class="fa-solid fa-chart-pie text-3xl text-indigo-600 animate-pulse"></i>
@@ -125,7 +125,7 @@ if (hostname === PROD_HOSTNAME) {
                 <p class="text-gray-500 max-w-sm mx-auto">Fill out the campaign details on the left to generate your custom AI analysis</p>
              </div>
              <!-- Render Dashboard with Sample Data (Blurred BG) -->
-             <Dashboard :data="sampleData" class="opacity-50 pointer-events-none filter blur-sm select-none" />
+             <Dashboard :data="sampleData" is-sample class="opacity-50 pointer-events-none filter blur-sm select-none" />
           </div>
         </div>
 

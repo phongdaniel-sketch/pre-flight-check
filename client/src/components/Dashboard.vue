@@ -2,7 +2,11 @@
 import { computed } from 'vue';
 
 const props = defineProps({
-  data: Object
+  data: Object,
+  isSample: {
+    type: Boolean,
+    default: false
+  }
 });
 
 // Benchmark Rating Color
@@ -99,6 +103,20 @@ const gaugeColorClass = computed(() => {
     if (rating === 'Yellow') return 'text-pastel-canary';
     return 'text-pastel-coral';
 });
+
+const statusLabel = computed(() => {
+    const rating = props.data.final_rating;
+    if (rating === 'Green') return 'Ready to Fly';
+    if (rating === 'Yellow') return 'Needs Optimization';
+    return 'Rejected';
+});
+
+const statusColorClass = computed(() => {
+    const rating = props.data.final_rating;
+    if (rating === 'Green') return 'bg-pastel-mint text-white';
+    if (rating === 'Yellow') return 'bg-pastel-canary text-yellow-900';
+    return 'bg-pastel-coral text-white';
+});
 </script>
 
 <template>
@@ -119,16 +137,16 @@ const gaugeColorClass = computed(() => {
                         <circle cx="50" cy="50" r="45" fill="none" :class="gaugeColorClass" stroke="currentColor" stroke-width="6" stroke-linecap="round" :stroke-dasharray="gaugeDashArray" stroke-dashoffset="0" class="transition-all duration-1000 ease-out shadow-lg"></circle>
                     </svg>
                     <div class="absolute inset-0 flex flex-col items-center justify-center">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Score</span>
-                        <div class="flex items-center gap-1">
-                             <div class="w-3 h-1.5 rounded-full" :class="data.final_rating === 'Red' ? 'bg-pastel-coral' : 'bg-gray-200'"></div>
-                             <div class="w-3 h-1.5 rounded-full" :class="data.final_rating === 'Yellow' ? 'bg-pastel-canary' : 'bg-gray-200'"></div>
-                             <div class="w-3 h-1.5 rounded-full" :class="data.final_rating === 'Green' ? 'bg-pastel-mint' : 'bg-gray-200'"></div>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Predictive Score</span>
+                        <span class="text-5xl font-extrabold text-gray-800">{{ Math.round(data.predictive_score) }}</span>
+                        <div class="flex items-center gap-1 mt-2">
+                             <div class="w-2 h-1 rounded-full" :class="data.final_rating === 'Red' ? 'bg-pastel-coral' : 'bg-gray-200'"></div>
+                             <div class="w-2 h-1 rounded-full" :class="data.final_rating === 'Yellow' ? 'bg-pastel-canary' : 'bg-gray-200'"></div>
+                             <div class="w-2 h-1 rounded-full" :class="data.final_rating === 'Green' ? 'bg-pastel-mint' : 'bg-gray-200'"></div>
                         </div>
-                        <span class="text-4xl font-extrabold text-gray-800 mt-2">{{ Math.round(data.predictive_score) }}</span>
-                         <span class="px-3 py-1 bg-gray-100 rounded-full text-[10px] font-bold text-gray-500 uppercase mt-2">Ready</span>
                     </div>
                 </div>
+                <span class="px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide transition-colors" :class="statusColorClass">{{ statusLabel }}</span>
             </div>
 
             <!-- Middle/Right: Benchmark & DNA Cards -->
@@ -162,7 +180,7 @@ const gaugeColorClass = computed(() => {
     </div>
     
     <!-- Policy Check -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-50">
+    <div v-if="!isSample" class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-50">
        <div class="flex items-center gap-2 mb-4">
           <i class="fa-solid fa-shield-halved text-indigo-500"></i>
           <h3 class="font-bold text-gray-800">Policy Check</h3>
@@ -196,7 +214,7 @@ const gaugeColorClass = computed(() => {
     </div>
 
     <!-- Assessment -->
-    <div class="bg-indigo-50/30 p-6 rounded-2xl border border-indigo-100">
+    <div v-if="!isSample" class="bg-indigo-50/30 p-6 rounded-2xl border border-indigo-100">
          <div class="flex items-center gap-2 mb-4">
             <i class="fa-solid fa-clipboard-check text-indigo-600"></i>
             <h3 class="font-bold text-indigo-900 uppercase tracking-widest text-xs">Assessment</h3>
@@ -231,7 +249,7 @@ const gaugeColorClass = computed(() => {
     </div>
 
     <!-- Creative DNA Details -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-50">
+    <div v-if="!isSample" class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-50">
         <div class="flex items-center gap-2 mb-4">
           <i class="fa-solid fa-wand-magic-sparkles text-indigo-500"></i>
           <h3 class="font-bold text-gray-800">Creative DNA</h3>

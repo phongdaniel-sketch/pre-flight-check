@@ -76,7 +76,7 @@ Before calculating the final score, the system checks for violations.
 Combines creative quality with market bidding competitiveness.
 *   **Formula**: `(DNA Score * 0.7) + (Benchmark Score * 0.3)`
 
-### 5. Final Rating
-*   🟢 **Green**: Score > 80
-*   🟡 **Yellow**: Score 50 - 80
-*   🔴 **Red**: Score < 50 or Policy Violation
+### 5. Final Rating & Status Label
+*   🟢 **Green** (> 80): **"Ready to Fly"** - High probability of success.
+*   🟡 **Yellow** (50 - 80): **"Needs Optimization"** - Acceptable but room for improvement.
+*   🔴 **Red** (< 50 or Policy Issue): **"Rejected"** - Likely to fail or violates policy.
