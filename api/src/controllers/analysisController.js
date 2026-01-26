@@ -102,14 +102,17 @@ export class AnalysisController {
             const promises = [];
 
             // Video Analysis (N8N)
-            // Skip N8N if videoUrl is localhost (N8N cannot access it)
+            // Skip N8N if videoUrl is localhost OR if we are on Vercel with a local file (cannot be accessed externally due to ephemeral storage)
             if (hasVideo) {
-                if (videoUrl.includes('localhost') || videoUrl.includes('127.0.0.1')) {
-                    console.warn("Skipping N8N Video Analysis for Localhost URL");
+                const isLocalhost = videoUrl.includes('localhost') || videoUrl.includes('127.0.0.1');
+                const isVercelFileUpload = process.env.VERCEL && localVideoPath;
+
+                if (isLocalhost || isVercelFileUpload) {
+                    console.warn(`Skipping N8N for Upload. Localhost=${isLocalhost}, Vercel=${!!isVercelFileUpload}`);
                     promises.push(Promise.resolve({
                         policy: {
                             is_safe: true,
-                            reason: "Local File: N8N Policy Check Skipped (Safe Mode)"
+                            reason: "File Upload: N8N Skipped (Vercel/Local storage not accessible externally)"
                         },
                         creative: {} // Will be filled by analyzer below
                     }));
