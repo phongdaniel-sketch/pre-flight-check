@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pre-flight Check | Creative Scorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cream: '#FDFBF7',
+                        surface: '#FFFFFF',
+                        indigo: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            300: '#A5B4FC',
+                            500: '#6366F1',
+                            600: '#4F46E5',
+                            700: '#4338CA',
+                        },
+                        pastel: {
+                            mint: '#34D399',
+                            butter: '#FCD34D',
+                            coral: '#F87171'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Nunito', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 40px -10px rgba(99, 102, 241, 0.15)',
+                        'glow': '0 0 20px rgba(99, 102, 241, 0.3)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FDFBF7;
+            color: #374151;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #4338CA, #6366F1);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .spinner {
+            border: 3px solid rgba(99, 102, 241, 0.1);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border-left-color: #6366F1;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Custom File Input */
+        .file-drop-zone {
+            border: 2px dashed #E2E8F0;
+            transition: all 0.3s ease;
+            background-color: #F8FAFC;
+        }
+
+        .file-drop-zone:hover,
+        .file-drop-zone.dragover {
+            border-color: #6366F1;
+            background: #EEF2FF;
+            transform: scale(1.01);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col items-center p-6 font-sans">
+
+    <!-- Header -->
+    <header class="w-full max-w-5xl flex justify-between items-center mb-10 mt-4">
+        <div class="flex items-center gap-3">
+            <div
+                class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shadow-indigo-200">
+                <i class="fa-solid fa-plane-departure"></i>
+            </div>
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tight text-indigo-700">Pre-flight <span
+                        class="text-indigo-500">Check</span></h1>
+                <p class="text-xs text-slate-400 font-semibold tracking-wide">CREATIVE SCORER</p>
+            </div>
+        </div>
+        <div
+            class="px-4 py-1.5 bg-white rounded-full text-xs font-bold text-indigo-400 shadow-sm border border-indigo-50">
+            v1.0.0 Alpha</div>
+    </header>
+
+    <main class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        <!-- Left Column: Input Form -->
+        <div class="lg:col-span-4 space-y-6">
+            <div class="bg-white rounded-3xl p-6 shadow-soft border border-indigo-50/50">
+                <h2 class="text-lg font-bold mb-6 flex items-center gap-2 text-gray-700">
+                    <div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-500">
+                        <i class="fa-solid fa-sliders text-sm"></i>
+                    </div>
+                    Campaign Setup
+                </h2>
+
+                <form id="campaignForm" class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-500 mb-2 ml-1">Industry</label>
+                        <select name="industry_id"
+                            class="w-full bg-slate-50 border border-gray-200 text-gray-700 rounded-xl p-3.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition shadow-sm appearance-none">
+                            <option value="FIN">Finance ($750 avg)</option>
+                            <option value="ECOMM">E-commerce ($325 avg)</option>
+                            <option value="BEAUTY">Beauty ($350 avg)</option>
+                            <option value="FNB">Food & Beverage ($260 avg)</option>
+                            <option value="TECH">Technology ($500 avg)</option>
+                            <option value="TRAVEL">Travel ($380 avg)</option>
+                            <option value="OTHER">Other ($50 avg)</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-500 mb-2 ml-1">Target CPA ($)</label>
+                            <input type="number" name="target_cpa" value="50"
+                                class="w-full bg-slate-50 border border-gray-200 text-gray-700 rounded-xl p-3.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-500 mb-2 ml-1">Budget ($)</label>
+                            <input type="number" name="budget" value="1000"
+                                class="w-full bg-slate-50 border border-gray-200 text-gray-700 rounded-xl p-3.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition shadow-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-500 mb-2 ml-1">Country</label>
+                        <select name="country"
+                            class="w-full bg-slate-50 border border-gray-200 text-gray-700 rounded-xl p-3.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition shadow-sm">
+                            <option value="VN" selected>Vietnam (VN)</option>
+                            <option value="US">United States (US)</option>
+                            <option value="GB">United Kingdom (UK)</option>
+                            <option value="ID">Indonesia (ID)</option>
+                            <option value="TH">Thailand (TH)</option>
+                            <option value="MY">Malaysia (MY)</option>
+                            <option value="PH">Philippines (PH)</option>
+                            <option value="SG">Singapore (SG)</option>
+                            <option value="JP">Japan (JP)</option>
+                            <option value="KR">South Korea (KR)</option>
+                            <option value="BR">Brazil (BR)</option>
+                            <option value="MX">Mexico (MX)</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-500 mb-2 ml-1">Gender</label>
+                            <select name="audience_gender"
+                                class="w-full bg-slate-50 border border-gray-200 text-gray-700 rounded-xl p-3.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition shadow-sm">
+                                <option value="ALL">All</option>
+                                <option value="MALE">Male</option>
+                                <option value="FEMALE">Female</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-500 mb-2 ml-1">Age</label>
+                            <select name="audience_age"
+                                class="w-full bg-slate-50 border border-gray-200 text-gray-700 rounded-xl p-3.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition shadow-sm">
+                                <option value="18-24, 25-34, 35-44, 45-54, 55-64" selected>All Ages</option>
+                                <option value="18-24">18-24</option>
+                                <option value="25-34">25-34</option>
+                                <option value="35-44">35-44</option>
+                                <option value="45-54">45-54</option>
+                                <option value="55-64">55-64</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="budgetWarning"
+                        class="hidden bg-pastel-butter/20 text-yellow-600 p-4 rounded-xl text-xs flex items-center gap-3 font-semibold border border-pastel-butter/40">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Budget must be at least 50x Target CPA (<span id="minBudgetDisplay"></span>)</span>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-500 mb-2 ml-1">Landing Page URL</label>
+                        <input type="url" name="landing_page_url" placeholder="https://..."
+                            class="w-full bg-slate-50 border border-gray-200 text-gray-700 rounded-xl p-3.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition shadow-sm">
+                    </div>
+
+                    <div class="pt-2">
+                        <label class="block text-sm font-semibold text-gray-500 mb-3 ml-1">Creative Asset</label>
+
+                        <!-- Tabs -->
+                        <div class="flex gap-2 p-1 bg-gray-100 rounded-xl mb-4">
+                            <button type="button" id="tabUpload"
+                                class="flex-1 py-2 rounded-lg text-sm font-bold shadow-sm bg-white text-indigo-600 transition-all">Upload</button>
+                            <button type="button" id="tabUrl"
+                                class="flex-1 py-2 rounded-lg text-sm font-semibold text-gray-500 hover:text-gray-700 transition">Video
+                                Link</button>
+                        </div>
+
+                        <!-- Upload Zone -->
+                        <div id="sectionUpload">
+                            <div id="dropZone"
+                                class="file-drop-zone rounded-2xl p-8 text-center cursor-pointer relative h-40 flex flex-col items-center justify-center border-indigo-100">
+                                <input type="file" name="video_file" id="videoFile" accept="video/*"
+                                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                <div class="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center mb-3">
+                                    <i class="fa-solid fa-cloud-arrow-up text-xl text-indigo-400"></i>
+                                </div>
+                                <p class="text-sm font-bold text-gray-600 mb-1" id="fileName">Click or Drop Video</p>
+                                <p class="text-[10px] text-gray-400 uppercase tracking-wide">MP4, MOV up to 50MB</p>
+                            </div>
+                        </div>
+
+                        <!-- URL Input -->
+                        <div id="sectionUrl" class="hidden">
+                            <input type="url" name="video_url_input" id="videoUrlInput"
+                                placeholder="https://example.com/video.mp4"
+                                class="w-full bg-slate-50 border border-gray-200 text-gray-700 rounded-xl p-3.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition shadow-sm">
+                            <p class="text-[10px] text-gray-400 mt-2 ml-1">Direct link to video file</p>
+                        </div>
+                    </div>
+
+                    <button type="submit"
+                        class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 rounded-full shadow-lg shadow-indigo-300 transform hover:-translate-y-0.5 transition-all duration-200 flex justify-center items-center gap-2 mt-4 text-base">
+                        <span id="btnText">Analyze</span>
+                        <div id="btnSpinner" class="spinner hidden border-white/30 border-l-white"></div>
+                    </button>
+                    <p id="errorMsg" class="text-pastel-coral text-sm font-semibold text-center hidden mt-2"></p>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Column: Dashboard -->
+        <div class="lg:col-span-8 space-y-6">
+            <!-- Main Score Card -->
+            <div
+                class="bg-white rounded-3xl p-8 shadow-soft relative overflow-hidden min-h-[400px] flex flex-col justify-center border border-indigo-50/50">
+                <div class="absolute top-0 right-0 p-8 opacity-5">
+                    <i class="fa-solid fa-chart-line text-9xl text-indigo-900"></i>
+                </div>
+
+                <div class="flex flex-col md:flex-row items-center justify-evenly gap-10">
+                    <!-- Traffic Light Circle -->
+                    <div class="relative w-56 h-56 flex items-center justify-center shrink-0">
+                        <!-- Decorative outer rings -->
+                        <div class="absolute inset-0 rounded-full border border-indigo-50 scale-110"></div>
+                        <div class="absolute inset-0 rounded-full border border-indigo-50 scale-125 opacity-50"></div>
+
+                        <div id="scoreCircle"
+                            class="w-48 h-48 rounded-full bg-white flex flex-col items-center justify-center shadow-xl transition-all duration-1000 border-4 border-indigo-50">
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Score</span>
+                            <span id="scoreValue" class="text-6xl font-extrabold text-gray-700">--</span>
+                            <span id="scoreLabel"
+                                class="text-sm font-bold mt-2 px-3 py-1 rounded-full bg-gray-100 text-gray-500">READY</span>
+                        </div>
+                    </div>
+
+                    <!-- Key Stats -->
+                    <div class="grid grid-cols-2 gap-5 w-full max-w-sm">
+                        <div class="bg-cream p-5 rounded-2xl border border-indigo-100 text-center">
+                            <div class="text-indigo-300 text-xs font-bold uppercase tracking-wider mb-1">Benchmark</div>
+                            <div id="benchmarkVal" class="text-3xl font-bold text-indigo-700">--</div>
+                        </div>
+                        <div class="bg-cream p-5 rounded-2xl border border-indigo-100 text-center">
+                            <div class="text-indigo-300 text-xs font-bold uppercase tracking-wider mb-1">DNA Score</div>
+                            <div id="dnaVal" class="text-3xl font-bold text-indigo-700">--</div>
+                        </div>
+                        <div id="policyContainer"
+                            class="col-span-2 bg-cream p-4 rounded-2xl border border-indigo-100 flex items-center justify-between px-6">
+                            <span class="text-gray-500 text-sm font-semibold">Policy Check</span>
+                            <span id="policyVal" class="text-sm font-bold text-gray-400"><i
+                                    class="fa-solid fa-hourglass-half"></i> Pending</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Detail Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Creative Card -->
+                <div class="bg-white rounded-3xl p-8 shadow-soft border border-indigo-50/50">
+                    <h4 class="text-sm font-bold text-indigo-300 uppercase mb-6 tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-indigo-400"></i> Creative DNA
+                    </h4>
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between text-sm font-semibold mb-2 text-gray-600">
+                                <span>Hook Score (3s)</span>
+                                <span id="hookVal" class="text-indigo-600">--</span>
+                            </div>
+                            <div class="w-full bg-gray-100 rounded-full h-3">
+                                <div id="hookBar"
+                                    class="bg-indigo-400 h-3 rounded-full transition-all duration-1000 shadow-[0_2px_10px_rgba(99,102,241,0.4)]"
+                                    style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm font-semibold mb-2 text-gray-600">
+                                <span>Pacing Score</span>
+                                <span id="pacingVal" class="text-purple-500">--</span>
+                            </div>
+                            <div class="w-full bg-gray-100 rounded-full h-3">
+                                <div id="pacingBar"
+                                    class="bg-purple-400 h-3 rounded-full transition-all duration-1000 shadow-[0_2px_10px_rgba(192,132,252,0.4)]"
+                                    style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center text-sm pt-2">
+                            <span class="text-gray-500 font-medium">Safe Zone</span>
+                            <span id="safeZoneVal"
+                                class="px-3 py-1 rounded-full bg-gray-100 text-gray-400 text-xs font-bold">Unknown</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-500 font-medium">Duration</span>
+                            <span id="durationVal" class="text-gray-700 font-bold">--s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommendation Card -->
+                <div class="bg-white rounded-3xl p-8 shadow-soft border border-indigo-50/50">
+                    <h4
+                        class="text-sm font-bold text-pastel-mint uppercase mb-6 tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-clipboard-check"></i> Assessment
+                    </h4>
+                    <div id="assessmentText" class="text-base text-gray-600 leading-relaxed font-medium">
+                        Ready to analyze. Please upload a video and configure campaign settings to begin the pre-flight
+                        check.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        const form = document.getElementById('campaignForm');
+        const fileInput = document.getElementById('videoFile');
+        const fileNameDisplay = document.getElementById('fileName');
+        const dropZone = document.getElementById('dropZone');
+
+        // Tab Logic
+        const tabUpload = document.getElementById('tabUpload');
+        const tabUrl = document.getElementById('tabUrl');
+        const sectionUpload = document.getElementById('sectionUpload');
+        const sectionUrl = document.getElementById('sectionUrl');
+        const videoUrlInput = document.getElementById('videoUrlInput');
+
+        // Styles for active/inactive tabs
+        const activeFullClass = "bg-white text-indigo-600 shadow-sm";
+        const inactiveFullClass = "text-gray-500 hover:text-gray-700";
+
+        tabUpload.addEventListener('click', () => {
+            tabUpload.className = "flex-1 py-2 rounded-lg text-sm font-bold transition-all " + activeFullClass;
+            tabUrl.className = "flex-1 py-2 rounded-lg text-sm font-semibold transition-all " + inactiveFullClass;
+            sectionUpload.classList.remove('hidden');
+            sectionUrl.classList.add('hidden');
+            videoUrlInput.value = '';
+        });
+
+        tabUrl.addEventListener('click', () => {
+            tabUrl.className = "flex-1 py-2 rounded-lg text-sm font-bold transition-all " + activeFullClass;
+            tabUpload.className = "flex-1 py-2 rounded-lg text-sm font-semibold transition-all " + inactiveFullClass;
+            sectionUrl.classList.remove('hidden');
+            sectionUpload.classList.add('hidden');
+            fileInput.value = '';
+            fileNameDisplay.innerText = "Click or Drop Video";
+        });
+
+        // Drag & Drop Visuals
+        fileInput.addEventListener('change', (e) => {
+            if (fileInput.files.length) fileNameDisplay.innerText = fileInput.files[0].name;
+        });
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+        function highlight(e) { dropZone.classList.add('dragover'); }
+        function unhighlight(e) { dropZone.classList.remove('dragover'); }
+        dropZone.addEventListener('drop', handleDrop, false);
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            fileInput.files = files;
+            if (files.length) fileNameDisplay.innerText = files[0].name;
+            tabUpload.click();
+        }
+
+        // Budget Validation
+        const targetCpaInput = document.querySelector('input[name="target_cpa"]');
+        const budgetInput = document.querySelector('input[name="budget"]');
+        const budgetWarning = document.getElementById('budgetWarning');
+        const minBudgetDisplay = document.getElementById('minBudgetDisplay');
+
+        function validateBudget() {
+            const cpa = parseFloat(targetCpaInput.value) || 0;
+            const budget = parseFloat(budgetInput.value) || 0;
+            const minBudget = cpa * 50;
+
+            if (budget < minBudget) {
+                budgetWarning.classList.remove('hidden');
+                minBudgetDisplay.innerText = minBudget;
+                return false;
+            } else {
+                budgetWarning.classList.add('hidden');
+                return true;
+            }
+        }
+
+        function updateDefaultBudget() {
+            const cpa = parseFloat(targetCpaInput.value) || 0;
+            if (cpa > 0) {
+                budgetInput.value = cpa * 50;
+            }
+            validateBudget();
+        }
+
+        targetCpaInput.addEventListener('input', updateDefaultBudget);
+        budgetInput.addEventListener('input', validateBudget);
+
+        // Initialize default budget
+        updateDefaultBudget();
+
+        // Form Submit
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!validateBudget()) return;
+
+            const lpInput = document.querySelector('input[name="landing_page_url"]');
+            const hasVideo = fileInput.files.length || videoUrlInput.value.trim();
+            const hasLP = lpInput.value.trim();
+
+            if (!hasVideo && !hasLP) {
+                const err = document.getElementById('errorMsg');
+                err.innerText = "Please provide either a Video OR a Landing Page URL.";
+                err.classList.remove('hidden');
+                return;
+            }
+
+            // Vercel Limit Check (4.5MB)
+            if (fileInput.files.length > 0) {
+                const fileSizeMB = fileInput.files[0].size / (1024 * 1024);
+                if (fileSizeMB > 4.5) {
+                    const err = document.getElementById('errorMsg');
+                    err.innerHTML = `File too large (${fileSizeMB.toFixed(1)}MB). Vercel limits uploads to 4.5MB.<br>👉 <b>Please use "Video Link" option instead.</b>`;
+                    err.classList.remove('hidden');
+                    return;
+                }
+            }
+
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
+            const errorMsg = document.getElementById('errorMsg');
+
+            btnText.classList.add('hidden');
+            btnSpinner.classList.remove('hidden');
+            errorMsg.classList.add('hidden');
+
+            try {
+                const formData = new FormData(form);
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    let errorMessage = 'Analysis failed';
+                    try {
+                        const err = await response.json();
+                        errorMessage = err.detail || errorMessage;
+                    } catch (parseErr) {
+                        // Fallback for non-JSON errors (like 413 Entity Too Large HTML)
+                        if (response.status === 413) {
+                            errorMessage = "File too large. Server rejected upload.";
+                        } else {
+                            errorMessage = `Server Error (${response.status}): Check console for details.`;
+                        }
+                        console.error("Non-JSON Response:", parseErr);
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                const data = await response.json();
+                updateDashboard(data);
+
+            } catch (err) {
+                console.error(err);
+                errorMsg.innerHTML = err.message; // Use innerHTML to support bold tags
+                errorMsg.classList.remove('hidden');
+            } finally {
+                btnText.classList.remove('hidden');
+                btnSpinner.classList.add('hidden');
+            }
+        });
+
+        function updateDashboard(data) {
+            // Colors from Palette
+            // Green -> Mint (#34D399)
+            // Yellow -> Butter (#FCD34D)
+            // Red -> Coral (#F87171)
+            const colors = {
+                'Green': '#34D399',
+                'Yellow': '#FCD34D',
+                'Red': '#F87171'
+            };
+            // Text color for label (if yellow, need darker text, others white)
+            const textColors = {
+                'Green': '#FFFFFF',
+                'Yellow': '#78350f', // amber-900
+                'Red': '#FFFFFF'
+            };
+
+            const ratingColor = colors[data.final_rating] || '#94a3b8';
+            const ratingTextColor = textColors[data.final_rating] || '#FFFFFF';
+
+            // Main Score
+            document.getElementById('scoreValue').innerText = Math.round(data.predictive_score);
+            const scoreLabel = document.getElementById('scoreLabel');
+            scoreLabel.innerText = data.final_rating;
+            scoreLabel.style.backgroundColor = ratingColor;
+            scoreLabel.style.color = ratingTextColor;
+
+            const circle = document.getElementById('scoreCircle');
+            circle.style.borderColor = ratingColor;
+            circle.style.boxShadow = `0 10px 30px -5px ${ratingColor}66`; // soft glow
+
+            // Metrics
+            document.getElementById('benchmarkVal').innerText = Math.round(data.benchmark_score);
+            document.getElementById('dnaVal').innerText = data.dna_score.toFixed(1);
+
+            // Policy
+            const policyEl = document.getElementById('policyVal');
+            const policyContainer = document.getElementById('policyContainer');
+
+            if (data.policy_check.is_safe) {
+                // Reset layout for safe state
+                if (policyContainer) policyContainer.className = "col-span-2 bg-cream p-4 rounded-2xl border border-indigo-100 flex items-center justify-between px-6";
+                policyEl.innerHTML = '<i class="fa-solid fa-shield-check text-pastel-mint"></i> Safe';
+                policyEl.className = 'text-sm font-bold text-gray-700';
+            } else {
+                // Stack layout for error details
+                if (policyContainer) policyContainer.className = "col-span-2 bg-cream p-5 rounded-2xl border border-indigo-100 flex flex-col gap-3 px-6";
+
+                const reasons = (data.policy_check.reason || 'Unsafe').split('; ');
+                const formattedReasons = reasons.map(r => {
+                    let badge = '';
+                    let content = r;
+
+                    if (r.startsWith('Video:')) {
+                        content = r.replace('Video:', '').trim();
+                        badge = '<span class="font-bold text-indigo-500 text-xs uppercase tracking-wide mb-1 block">Video Violation:</span>';
+                    } else if (r.startsWith('LP:')) {
+                        content = r.replace('LP:', '').trim();
+                        badge = '<span class="font-bold text-indigo-500 text-xs uppercase tracking-wide mb-1 block">Landing Page Violation:</span>';
+                    }
+
+                    // Handle "Flagged for Manual Review" specifically
+                    if (content.includes('Flagged for Manual Review:')) {
+                        const parts = content.split('Flagged for Manual Review:');
+                        const details = parts[1].trim();
+                        content = `
+                            <div class="bg-white/50 p-2 rounded-md border border-indigo-100/50">
+                                <span class="font-bold text-indigo-600">Flagged for Manual Review</span>
+                                <div class="mt-1 text-gray-600 leading-snug whitespace-pre-wrap">${details}</div>
+                            </div>`;
+                    } else {
+                        content = `<span>${content}</span>`;
+                    }
+
+                    return `<div class="mb-2">${badge}${content}</div>`;
+                }).join('');
+
+                policyEl.innerHTML = `<div class="flex flex-col gap-1 w-full"><div class="flex items-center gap-2 mb-1"><i class="fa-solid fa-triangle-exclamation text-pastel-coral"></i> <span class="uppercase font-bold text-xs text-pastel-coral">Policy Warning</span></div>${formattedReasons}</div>`;
+                policyEl.className = 'text-xs text-gray-600 font-medium text-left w-full';
+            }
+
+
+            // Creative
+            document.getElementById('hookVal').innerText = data.creative_metrics.hook_score + '/100';
+            document.getElementById('hookBar').style.width = data.creative_metrics.hook_score + '%';
+
+            document.getElementById('pacingVal').innerText = data.creative_metrics.pacing_score + '/100';
+            document.getElementById('pacingBar').style.width = data.creative_metrics.pacing_score + '%';
+
+            document.getElementById('durationVal').innerText = data.creative_metrics.duration_seconds + 's';
+
+            const sz = document.getElementById('safeZoneVal');
+            if (data.creative_metrics.safe_zone) {
+                sz.innerText = "Compliant";
+                sz.className = "px-3 py-1 rounded-full bg-green-50 text-green-600 text-xs font-bold border border-green-100";
+            } else {
+                sz.innerText = "X Violation";
+                sz.className = "px-3 py-1 rounded-full bg-red-50 text-red-500 text-xs font-bold border border-red-100";
+            }
+
+            // Assessment
+            const assessmentEl = document.getElementById('assessmentText');
+            let assessmentHTML = '';
+
+            // 1. Cleaner Message Parsing
+            let msg = data.message.replace('Analysis Complete. ', '');
+            if (msg === 'Policy Safe') msg = 'No policy violations found.';
+
+            const points = msg.split('; ');
+            const formattedPoints = points.map(r => {
+                let badge = '';
+                let content = r;
+
+                if (r.startsWith('Video:')) {
+                    content = r.replace('Video:', '').trim();
+                    badge = '<span class="font-bold text-indigo-500 block mb-1">Video Violation</span>';
+                } else if (r.startsWith('LP:')) {
+                    content = r.replace('LP:', '').trim();
+                    badge = '<span class="font-bold text-indigo-500 block mb-1">Landing Page Violation</span>';
+                }
+
+                // Special case for Flagged
+                if (content.includes('Flagged for Manual Review:')) {
+                    const parts = content.split('Flagged for Manual Review:');
+                    const details = parts[1] ? parts[1].trim() : '';
+                    content = `<div class="bg-indigo-50 p-2 rounded-lg border border-indigo-100 mt-1">
+                            <span class="font-bold text-indigo-700 text-xs uppercase tracking-wide px-2 py-0.5 bg-white rounded border border-indigo-200">Flagged for Review</span>
+                            <div class="mt-2 text-gray-700 leading-relaxed text-xs">${details || 'Manual review required.'}</div>
+                        </div>`;
+                } else {
+                    content = `<div class="text-gray-600">${content}</div>`;
+                }
+
+                return `<div>${badge}${content}</div>`;
+            }).join('<div class="h-3"></div>'); // Spacer
+
+            assessmentHTML += `<div class="mb-4">${formattedPoints}</div>`;
+
+            // 2. Financial Context
+            let financialHTML = '';
+            if (data.policy_check.is_safe) {
+                const strength = data.benchmark_score > 80 ? "<span class='text-pastel-mint font-bold'>Strong</span>" : "<span class='text-pastel-butter font-bold'>Moderate</span>";
+                financialHTML = `<div class="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100"><div class="text-xs font-bold text-indigo-400 uppercase tracking-wide mb-1">Financial Potential</div><div class="text-sm text-gray-700">Benchmarking indicates <span class="lowercase">${strength}</span> performance potential based on current metrics.</div></div>`;
+            } else {
+                financialHTML = `<div class="p-3 bg-red-50 rounded-xl border border-red-100"><div class="text-xs font-bold text-red-400 uppercase tracking-wide mb-1">Action Required</div><div class="text-sm text-red-600 font-medium">Please resolve policy violations to see financial benchmarking.</div></div>`;
+            }
+
+            assessmentEl.innerHTML = assessmentHTML + financialHTML;
+        }
+    </script>
+</body>
+
+</html>
