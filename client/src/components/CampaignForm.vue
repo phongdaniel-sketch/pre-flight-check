@@ -10,7 +10,7 @@ const props = defineProps({
 });
 
 const formData = ref({
-  industry: 'Ecommerce',
+  industry: 'e-commerce (non-app)',
   target_cpa: 50,
   budget: 2500,
   country: 'US',
@@ -187,26 +187,26 @@ const submitForm = async () => {
 };
 
 const industries = [
-    { id: 'Education', label: 'Education ($85)', cpa: 85 },
-    { id: 'Vehicles & Transportation', label: 'Vehicles & Transportation ($150)', cpa: 150 },
-    { id: 'Baby & Kids Products', label: 'Baby & Kids Products ($60)', cpa: 60 },
-    { id: 'Financial Services', label: 'Financial Services ($750)', cpa: 750 },
-    { id: 'Beauty & Personal Care', label: 'Beauty & Personal Care ($350)', cpa: 350 },
-    { id: 'Tech & Electronics', label: 'Tech & Electronics ($500)', cpa: 500 },
-    { id: 'Appliances', label: 'Appliances ($120)', cpa: 120 },
-    { id: 'Travel', label: 'Travel ($380)', cpa: 380 },
-    { id: 'Household Products', label: 'Household Products ($50)', cpa: 50 },
-    { id: 'Pets', label: 'Pets ($45)', cpa: 45 },
-    { id: 'Apps', label: 'Apps ($25)', cpa: 25 },
-    { id: 'Home Improvement', label: 'Home Improvement ($100)', cpa: 100 },
-    { id: 'Apparel & Accessories', label: 'Apparel & Accessories ($80)', cpa: 80 },
-    { id: 'News & Entertainment', label: 'News & Entertainment ($30)', cpa: 30 },
-    { id: 'Business Services', label: 'Business Services ($200)', cpa: 200 },
-    { id: 'Games', label: 'Games ($20)', cpa: 20 },
-    { id: 'Life Services', label: 'Life Services ($80)', cpa: 80 },
-    { id: 'Food & Beverage', label: 'Food & Beverage ($60)', cpa: 60 },
-    { id: 'Sports & Outdoors', label: 'Sports & Outdoors ($90)', cpa: 90 },
-    { id: 'E-Commerce (Non-app)', label: 'E-Commerce (Non-app) ($325)', cpa: 325 }
+    { id: 'education', label: 'Education ($85)', cpa: 85 },
+    { id: 'vehicles & transportation', label: 'Vehicles & Transportation ($150)', cpa: 150 },
+    { id: 'baby & kids products', label: 'Baby & Kids Products ($60)', cpa: 60 },
+    { id: 'financial services', label: 'Financial Services ($750)', cpa: 750 },
+    { id: 'beauty & personal care', label: 'Beauty & Personal Care ($350)', cpa: 350 },
+    { id: 'tech & electronics', label: 'Tech & Electronics ($500)', cpa: 500 },
+    { id: 'appliances', label: 'Appliances ($120)', cpa: 120 },
+    { id: 'travel', label: 'Travel ($380)', cpa: 380 },
+    { id: 'household products', label: 'Household Products ($50)', cpa: 50 },
+    { id: 'pets', label: 'Pets ($45)', cpa: 45 },
+    { id: 'apps', label: 'Apps ($25)', cpa: 25 },
+    { id: 'home improvement', label: 'Home Improvement ($100)', cpa: 100 },
+    { id: 'apparel & accessories', label: 'Apparel & Accessories ($80)', cpa: 80 },
+    { id: 'news & entertainment', label: 'News & Entertainment ($30)', cpa: 30 },
+    { id: 'business services', label: 'Business Services ($200)', cpa: 200 },
+    { id: 'games', label: 'Games ($20)', cpa: 20 },
+    { id: 'life services', label: 'Life Services ($80)', cpa: 80 },
+    { id: 'food & beverage', label: 'Food & Beverage ($60)', cpa: 60 },
+    { id: 'sports & outdoors', label: 'Sports & Outdoors ($90)', cpa: 90 },
+    { id: 'e-commerce (non-app)', label: 'E-Commerce (Non-app) ($325)', cpa: 325 }
 ];
 
 // Industry Dropdown Logic
