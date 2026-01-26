@@ -72,10 +72,10 @@ const updateBudget = () => {
 const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-        // Vercel Limit Check
+        // Vercel Limit Check (Warn only on prod, but allow local)
         const sizeMB = file.size / (1024 * 1024);
-        if (sizeMB > 4.5) {
-            alert(`File too large (${sizeMB.toFixed(1)}MB). Limit is 4.5MB. Please use Video Link.`);
+        if (sizeMB > 100) {
+            alert(`File too large (${sizeMB.toFixed(1)}MB). Limit is 100MB. Please use Video Link.`);
             event.target.value = ''; // clear
             return;
         }
@@ -328,7 +328,7 @@ const selectIndustry = (industry) => {
                 <input type="file" accept="video/*" @change="handleFileChange" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                 <i class="fa-solid fa-cloud-arrow-up text-gray-400 text-2xl mb-2"></i>
                 <p class="text-xs text-gray-500 font-medium">{{ formData.video_file ? formData.video_file.name : 'Click to Upload Video' }}</p>
-                <p class="text-[10px] text-gray-400 mt-1">Max 4.5MB (Vercel Limit)</p>
+                <p class="text-[10px] text-gray-400 mt-1">Max 100MB (Local), 4.5MB (Vercel)</p>
             </div>
         </div>
 

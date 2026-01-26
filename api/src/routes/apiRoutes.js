@@ -6,7 +6,7 @@ import { AnalysisController } from '../controllers/analysisController.js';
 const router = express.Router();
 
 // Configure Multer
-const uploadDir = process.env.VERCEL ? "/tmp" : path.join(process.cwd(), "src/uploads");
+const uploadDir = process.env.VERCEL ? "/tmp" : path.join(process.cwd(), "api/src/uploads");
 // Ensure dir exists
 import fs from 'fs';
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
@@ -23,7 +23,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+    limits: { fileSize: 100 * 1024 * 1024 } // 100MB limit
 });
 
 // Routes

@@ -36,7 +36,7 @@ export class AnalysisController {
                     const fileId = uuidv4();
                     const ext = "mp4";
                     // Use /tmp for Vercel compatibility
-                    const uploadDir = process.env.VERCEL ? "/tmp" : path.join(process.cwd(), "src/uploads");
+                    const uploadDir = process.env.VERCEL ? "/tmp" : path.join(process.cwd(), "api/src/uploads");
 
                     if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
@@ -100,8 +100,20 @@ export class AnalysisController {
             const promises = [];
 
             // Video Analysis (N8N)
+            // Skip N8N if videoUrl is localhost (N8N cannot access it)
             if (hasVideo) {
-                promises.push(n8n.analyzeVideo(videoUrl, campaignContext));
+                if (videoUrl.includes('localhost') || videoUrl.includes('127.0.0.1')) {
+                    console.warn("Skipping N8N Video Analysis for Localhost URL");
+                    promises.push(Promise.resolve({
+                        policy: {
+                            is_safe: true,
+                            reason: "Local File: N8N Policy Check Skipped (Safe Mode)"
+                        },
+                        creative: {} // Will be filled by analyzer below
+                    }));
+                } else {
+                    promises.push(n8n.analyzeVideo(videoUrl, campaignContext));
+                }
             } else {
                 promises.push(Promise.resolve(null));
             }

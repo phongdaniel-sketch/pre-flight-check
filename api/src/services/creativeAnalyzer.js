@@ -1,9 +1,11 @@
 import ffmpeg from 'fluent-ffmpeg';
 import pathToFfmpeg from 'ffmpeg-static';
+import pathToFfprobe from 'ffprobe-static';
 import fs from 'fs';
 
-// Set ffmpeg path
+// Set ffmpeg & ffprobe paths
 ffmpeg.setFfmpegPath(pathToFfmpeg);
+ffmpeg.setFfprobePath(pathToFfprobe.path);
 
 export class CreativeAnalyzer {
     constructor(videoPath) {
@@ -83,7 +85,7 @@ export class CreativeAnalyzer {
             const scenes = [];
             ffmpeg(this.videoPath)
                 .videoFilters("select='gt(scene,0.3)',showinfo")
-                .f('null')
+                .format('null')
                 .on('stderr', (stderrLine) => {
                     // Parse stderr for showinfo
                     // Line format: ... n:   8 pts:  26692 pts_time:0.33365 ...

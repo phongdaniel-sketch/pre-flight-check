@@ -26,7 +26,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Serve Uploads (for N8N to potentially access if on same network)
 // In Vercel, this is read-only except /tmp, but we can serve if it exists
-app.use('/uploads', express.static(path.join(process.cwd(), 'src/uploads')));    // Adjusted for Vercel/API context
+app.use('/uploads', express.static(path.join(process.cwd(), 'api/src/uploads')));    // Adjusted for Vercel/API context
 
 // API Routes
 app.use('/api', apiRoutes);
