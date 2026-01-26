@@ -81,7 +81,9 @@ export class AnalysisController {
                 // So, for now, we leave videoUrl empty?
                 // Or we serve it statically.
                 const fileId = videoFile.filename;
-                videoUrl = `http://localhost:${process.env.PORT || 8000}/uploads/${fileId}`;
+                const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+                const host = req.get('host');
+                videoUrl = `${protocol}://${host}/uploads/${fileId}`;
             }
 
             // 3. Benchmark Calculation
