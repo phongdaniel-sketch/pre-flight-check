@@ -53,12 +53,16 @@ const hostname = window.location.hostname;
 let envLabel = 'Local';
 let envClass = 'bg-gray-100 text-gray-600';
 
-if (hostname.includes('develop')) {
-    envLabel = 'Staging';
-    envClass = 'bg-yellow-100 text-yellow-700 border-yellow-200';
-} else if (hostname.includes('vercel.app') && !hostname.includes('develop')) {
+// Define Production Hostname explicitly
+const PROD_HOSTNAME = 'pre-flight-check-kohl.vercel.app';
+
+if (hostname === PROD_HOSTNAME) {
     envLabel = 'Production';
     envClass = 'bg-green-100 text-green-700 border-green-200';
+} else if (hostname.includes('vercel.app')) {
+    // Any other Vercel URL (including develop branch alias and hash previews)
+    envLabel = 'Staging';
+    envClass = 'bg-yellow-100 text-yellow-700 border-yellow-200';
 }
 </script>
 
