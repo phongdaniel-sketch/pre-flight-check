@@ -46,6 +46,20 @@ const resetAnalysis = () => {
   analysisData.value = null;
   errorMsg.value = '';
 };
+
+// Version & Env Logic
+const appVersion = 'v' + __APP_VERSION__;
+const hostname = window.location.hostname;
+let envLabel = 'Local';
+let envClass = 'bg-gray-100 text-gray-600';
+
+if (hostname.includes('develop')) {
+    envLabel = 'Staging';
+    envClass = 'bg-yellow-100 text-yellow-700 border-yellow-200';
+} else if (hostname.includes('vercel.app') && !hostname.includes('develop')) {
+    envLabel = 'Production';
+    envClass = 'bg-green-100 text-green-700 border-green-200';
+}
 </script>
 
 <template>
@@ -60,6 +74,14 @@ const resetAnalysis = () => {
           <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Pre-flight Check</h1>
           <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Benchmark Tool</p>
         </div>
+      </div>
+
+      <!-- Version Badge (Top Right) -->
+      <div class="absolute top-4 right-4 md:top-8 md:right-8 flex items-center gap-2">
+          <span class="px-3 py-1 rounded-full text-xs font-bold border" :class="envClass">
+              {{ envLabel }}
+          </span>
+          <span class="text-xs text-gray-400 font-mono">{{ appVersion }}</span>
       </div>
 
       <!-- Error Toast -->

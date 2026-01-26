@@ -41,6 +41,18 @@ case $choice in
             git checkout develop || exit 1
         fi
         
+        
+        # Auto-increment version for Staging
+        echo "Updating version..."
+        cd client
+        npm version patch --no-git-tag-version
+        new_version=$(node -p "require('./package.json').version")
+        cd ..
+        
+        # Commit version bump
+        git add client/package.json
+        git commit -m "chore: bump version to $new_version [skip ci]"
+        
         check_git_status
         
         echo "Pushing to origin/develop..."
