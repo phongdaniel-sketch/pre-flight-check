@@ -84,6 +84,7 @@ export class CreativeAnalyzer {
         return new Promise((resolve, reject) => {
             const scenes = [];
             ffmpeg(this.videoPath)
+                .inputOptions(['-t 10']) // LIMIT ANALYSIS TO FIRST 10 SECONDS to prevent Timeout
                 .videoFilters("select='gt(scene,0.3)',showinfo")
                 .format('null')
                 .on('stderr', (stderrLine) => {
@@ -97,13 +98,13 @@ export class CreativeAnalyzer {
                     }
                 })
                 .on('end', () => {
-                    resolve(scenes); // Unique and sorted?
+                    resolve(scenes);
                 })
                 .on('error', (err) => {
                     console.error("FFmpeg Error:", err);
                     resolve([]); // Fallback to 0 scenes
                 })
-                .save('/dev/null'); // trigger processing
+                .save('/dev/null');
         });
     }
 }

@@ -54,7 +54,7 @@ onUnmounted(() => {
       </div>
 
       <!-- Text Content -->
-      <h2 class="text-2xl font-bold text-gray-800 mb-2">Analyzing Campaign</h2>
+      <h2 class="text-2xl font-bold text-gray-800 mb-2">Analyzing</h2>
       <p class="text-gray-500 mb-6 text-center max-w-xs">
         Our AI is breaking down your video, checking policies, and predicting performance...
       </p>
