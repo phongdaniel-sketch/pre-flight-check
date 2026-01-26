@@ -22,22 +22,25 @@ export class AnalysisController {
                 return res.status(422).json({ detail: "Missing required fields (industry_id, target_cpa, budget)" });
             }
 
-            const videoFile = req.file;
+            // 2. Handle Video Input (URL Only now)
+            // Clean up input
             let videoUrl = video_url_input ? video_url_input.trim() : "";
             let localVideoPath = null;
             let hasVideo = false;
 
-            // 2. Handle Video Input (File or URL)
+            // If uploaded via Firebase, we get a URL.
+            // If via TikTok link, we get a URL.
+            // We no longer accept raw files via FormData to avoid Vercel limits.
+
             if (videoUrl) {
                 hasVideo = true;
-                // Download video if URL provided
+                // Download video from URL (Firebase or External)
                 try {
                     console.log(`Downloading video from ${videoUrl}...`);
                     const fileId = uuidv4();
                     const ext = "mp4";
                     // Use /tmp for Vercel compatibility
                     const uploadDir = process.env.VERCEL ? "/tmp" : path.join(process.cwd(), "api/src/uploads");
-
                     if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
                     localVideoPath = path.join(uploadDir, `${fileId}.${ext}`);
@@ -46,10 +49,7 @@ export class AnalysisController {
                         method: 'get',
                         url: videoUrl,
                         responseType: 'stream',
-                        headers: {
-                            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-                            "Referer": "https://www.tiktok.com/"
-                        }
+                        // ... headers logic? Firebase urls don't need TikTok referrer usually, but harmless
                     });
 
                     const writer = fs.createWriteStream(localVideoPath);
@@ -60,30 +60,9 @@ export class AnalysisController {
                         writer.on('error', reject);
                     });
                     console.log(`Downloaded to ${localVideoPath}`);
-
                 } catch (err) {
                     console.error("Video Download Failed:", err.message);
-                    // Non-fatal? If download fails, we can't do local analysis.
-                    // But we can still do N8N analysis if N8N can access the URL.
-                    // Assuming N8N can access the URL.
                 }
-
-            } else if (videoFile) {
-                hasVideo = true;
-                localVideoPath = videoFile.path; // Multer saves it
-                // We need a public URL for N8N? 
-                // In local dev, we can't expose local file to N8N easily without ngrok.
-                // For now, if file uploaded locally, N8N analysis might fail if it expects a public URL.
-                // WE NEED TO UPLOAD TO CLOUD OR SKIP N8N VIDEO ANALYSIS FOR LOCAL FILES?
-                // The Python version used `http://localhost:8000/static/uploads/...` which assumes N8N can hit localhost (impossible if N8N is cloud).
-                // Actually, the Python version *did* construct a localhost URL.
-                // If N8N is cloud, it can't reach localhost.
-                // So, for now, we leave videoUrl empty?
-                // Or we serve it statically.
-                const fileId = videoFile.filename;
-                const protocol = req.headers['x-forwarded-proto'] || req.protocol;
-                const host = req.get('host');
-                videoUrl = `${protocol}://${host}/uploads/${fileId}`;
             }
 
             // 3. Benchmark Calculation
@@ -102,23 +81,9 @@ export class AnalysisController {
             const promises = [];
 
             // Video Analysis (N8N)
-            // Skip N8N if videoUrl is localhost OR if we are on Vercel with a local file (cannot be accessed externally due to ephemeral storage)
-            if (hasVideo) {
-                const isLocalhost = videoUrl.includes('localhost') || videoUrl.includes('127.0.0.1');
-                const isVercelFileUpload = process.env.VERCEL && localVideoPath;
-
-                if (isLocalhost || isVercelFileUpload) {
-                    console.warn(`Skipping N8N for Upload. Localhost=${isLocalhost}, Vercel=${!!isVercelFileUpload}`);
-                    promises.push(Promise.resolve({
-                        policy: {
-                            is_safe: true,
-                            reason: "File Upload: N8N Skipped (Vercel/Local storage not accessible externally)"
-                        },
-                        creative: {} // Will be filled by analyzer below
-                    }));
-                } else {
-                    promises.push(n8n.analyzeVideo(videoUrl, campaignContext));
-                }
+            // Trust the URL (Firebase or Public)
+            if (hasVideo && videoUrl) {
+                promises.push(n8n.analyzeVideo(videoUrl, campaignContext));
             } else {
                 promises.push(Promise.resolve(null));
             }

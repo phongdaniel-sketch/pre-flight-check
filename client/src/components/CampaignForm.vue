@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed } from 'vue';
 import axios from 'axios';
+import { storage } from '../firebase.config';
+import { ref as storageRef, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 const emit = defineEmits(['start', 'success', 'error']);
 const props = defineProps({
@@ -16,10 +18,12 @@ const formData = ref({
   audience_age: 'All Ages',
   audience_gender: 'All',
   video_url_input: '',
-  video_file: null // for file object
+  video_file: null // Still used for preview/selection
 });
 
 const activeTab = ref('upload'); // 'upload' or 'link'
+const uploadProgress = ref(0);
+const isUploading = ref(false);
 
 // Country Dropdown Logic
 const isCountryDropdownOpen = ref(false);
@@ -72,47 +76,86 @@ const updateBudget = () => {
 const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-        // Vercel Limit Check (Warn only on prod, but allow local)
+        // Validation (Client side) - Firebase can handle large files
         const sizeMB = file.size / (1024 * 1024);
-        if (sizeMB > 100) {
-            alert(`File too large (${sizeMB.toFixed(1)}MB). Limit is 100MB. Please use Video Link.`);
-            event.target.value = ''; // clear
+        if (sizeMB > 500) {
+            alert(`File too large (${sizeMB.toFixed(1)}MB). Please keep under 500MB.`);
+            event.target.value = ''; 
             return;
         }
         formData.value.video_file = file;
     }
 };
 
+const uploadFileToFirebase = async (file) => {
+    return new Promise((resolve, reject) => {
+        const uniqueName = `uploads/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+        const fileRef = storageRef(storage, uniqueName);
+        const uploadTask = uploadBytesResumable(fileRef, file);
+
+        isUploading.value = true;
+        uploadProgress.value = 0;
+
+        uploadTask.on('state_changed',
+            (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                uploadProgress.value = Math.round(progress);
+            },
+            (error) => {
+                isUploading.value = false;
+                reject(error);
+            },
+            () => {
+                getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                    isUploading.value = false;
+                    resolve(downloadURL);
+                });
+            }
+        );
+    });
+};
+
 const submitForm = async () => {
-    emit('start');
-    
-    // Create FormData
-    const data = new FormData();
-    data.append('industry_id', formData.value.industry);
-    data.append('target_cpa', formData.value.target_cpa);
-    data.append('budget', formData.value.budget);
-    data.append('country', formData.value.country);
-    data.append('audience_age', formData.value.audience_age);
-    data.append('audience_gender', formData.value.audience_gender);
-    
-    if (formData.value.landing_page_url) {
-        data.append('landing_page_url', formData.value.landing_page_url);
-    }
+    // 1. Check if we need to upload a file first
+    let finalVideoUrl = "";
 
-    if (activeTab.value === 'link' && formData.value.video_url_input) {
-        data.append('video_url_input', formData.value.video_url_input);
+    if (activeTab.value === 'link') {
+        finalVideoUrl = formData.value.video_url_input;
     } else if (activeTab.value === 'upload' && formData.value.video_file) {
-        data.append('video_file', formData.value.video_file);
+        try {
+            emit('start'); // Show loading state early
+            finalVideoUrl = await uploadFileToFirebase(formData.value.video_file);
+        } catch (uploadError) {
+            console.error("Upload Failed:", uploadError);
+            emit('error', "Failed to upload video to Cloud Storage.");
+            return;
+        }
     }
 
-    if (!formData.value.video_file && !formData.value.video_url_input && !formData.value.landing_page_url) {
+    if (!finalVideoUrl && !formData.value.landing_page_url) {
         emit('error', 'Please provide either a Video or Landing Page.');
         return;
     }
 
+    // 2. Submit to Backend (JSON also supported now via controller update, but keeping FormData structure if needed by other logic, 
+    // actually let's use JSON as controller reads req.body)
+    
+    const data = {
+        industry_id: formData.value.industry,
+        target_cpa: formData.value.target_cpa,
+        budget: formData.value.budget,
+        country: formData.value.country,
+        audience_age: formData.value.audience_age,
+        audience_gender: formData.value.audience_gender,
+        landing_page_url: formData.value.landing_page_url,
+        video_url_input: finalVideoUrl
+    };
+
     try {
+        if (!isUploading.value) emit('start'); // Ensure start event if not already
+        
         const res = await axios.post('/api/analyze', data, {
-            headers: { 'Content-Type': 'multipart/form-data' }
+            headers: { 'Content-Type': 'application/json' }
         });
         emit('success', res.data);
     } catch (err) {
@@ -128,17 +171,26 @@ const submitForm = async () => {
 };
 
 const industries = [
-    { id: 'Ecommerce', label: 'Ecommerce ($325)', cpa: 325 },
-    { id: 'Finance', label: 'Finance ($750)', cpa: 750 },
-    { id: 'Beauty', label: 'Beauty ($350)', cpa: 350 },
-    { id: 'FnB', label: 'Food & Beverage ($260)', cpa: 260 },
-    { id: 'Tech', label: 'Tech/SaaS ($500)', cpa: 500 },
-    { id: 'Travel', label: 'Travel ($380)', cpa: 380 },
-    { id: 'Health', label: 'Health & Wellness ($68)', cpa: 68 },
-    { id: 'Fashion', label: 'Fashion ($325)', cpa: 325 },
     { id: 'Education', label: 'Education ($85)', cpa: 85 },
-    { id: 'Gaming', label: 'Gaming ($20)', cpa: 20 },
-    { id: 'Other', label: 'Other ($50)', cpa: 50 }
+    { id: 'Vehicles & Transportation', label: 'Vehicles & Transportation ($150)', cpa: 150 },
+    { id: 'Baby & Kids Products', label: 'Baby & Kids Products ($60)', cpa: 60 },
+    { id: 'Financial Services', label: 'Financial Services ($750)', cpa: 750 },
+    { id: 'Beauty & Personal Care', label: 'Beauty & Personal Care ($350)', cpa: 350 },
+    { id: 'Tech & Electronics', label: 'Tech & Electronics ($500)', cpa: 500 },
+    { id: 'Appliances', label: 'Appliances ($120)', cpa: 120 },
+    { id: 'Travel', label: 'Travel ($380)', cpa: 380 },
+    { id: 'Household Products', label: 'Household Products ($50)', cpa: 50 },
+    { id: 'Pets', label: 'Pets ($45)', cpa: 45 },
+    { id: 'Apps', label: 'Apps ($25)', cpa: 25 },
+    { id: 'Home Improvement', label: 'Home Improvement ($100)', cpa: 100 },
+    { id: 'Apparel & Accessories', label: 'Apparel & Accessories ($120)', cpa: 120 },
+    { id: 'News & Entertainment', label: 'News & Entertainment ($30)', cpa: 30 },
+    { id: 'Business Services', label: 'Business Services ($200)', cpa: 200 },
+    { id: 'Games', label: 'Games ($20)', cpa: 20 },
+    { id: 'Life Services', label: 'Life Services ($80)', cpa: 80 },
+    { id: 'Food & Beverage', label: 'Food & Beverage ($260)', cpa: 260 },
+    { id: 'Sports & Outdoors', label: 'Sports & Outdoors ($90)', cpa: 90 },
+    { id: 'E-Commerce (Non-app)', label: 'E-Commerce (Non-app) ($325)', cpa: 325 }
 ];
 
 // Industry Dropdown Logic
@@ -339,8 +391,20 @@ const selectIndustry = (industry) => {
       </div>
 
       <!-- Submit Button -->
-      <button :disabled="isLoading" type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 text-white p-4 rounded-xl font-bold shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transform hover:-translate-y-0.5 transition-all text-sm flex items-center justify-center gap-2">
-         <span v-if="!isLoading">Analyze</span>
+      <!-- Progress Bar -->
+      <div v-if="isUploading" class="mb-4">
+          <div class="flex justify-between text-xs font-bold text-indigo-600 mb-1">
+             <span>Uploading to Cloud...</span>
+             <span>{{ uploadProgress }}%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2.5">
+             <div class="bg-indigo-600 h-2.5 rounded-full transition-all duration-300" :style="{ width: uploadProgress + '%' }"></div>
+          </div>
+      </div>
+
+      <button :disabled="isLoading || isUploading" type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 text-white p-4 rounded-xl font-bold shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transform hover:-translate-y-0.5 transition-all text-sm flex items-center justify-center gap-2">
+         <span v-if="!isLoading && !isUploading">Analyze</span>
+         <span v-else-if="isUploading"><i class="fa-solid fa-cloud-arrow-up fa-fade"></i> Uploading...</span>
          <span v-else><i class="fa-solid fa-circle-notch fa-spin"></i> Analyzing...</span>
       </button>
 
