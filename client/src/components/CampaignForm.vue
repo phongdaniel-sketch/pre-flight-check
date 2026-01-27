@@ -113,9 +113,13 @@ const submitForm = async () => {
             emit('start'); // Show loading state early
             finalVideoUrl = await uploadFileToFirebase(formData.value.video_file);
         } catch (uploadError) {
-            console.error("Upload Failed:", uploadError);
-            emit('error', "Failed to upload video to Cloud Storage.");
-            return;
+            console.warn("Upload Failed:", uploadError);
+            const proceed = confirm("Failed to upload video for Policy Check. Do you want to proceed with just the Creative Score Analysis?");
+            if (!proceed) {
+                emit('error', "Upload failed. Please try again.");
+                return;
+            }
+            finalVideoUrl = ""; // Proceed without URL
         }
     }
 
