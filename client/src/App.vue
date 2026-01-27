@@ -116,11 +116,7 @@ if (hostname === PROD_HOSTNAME) {
           <AnalyzingState v-else-if="isLoading" class="flex-1" />
           
           <!-- Sample Data / Empty State -->
-<<<<<<< HEAD
-          <div v-else class="relative h-full">
-=======
           <div v-else class="relative flex-1 min-h-0">
->>>>>>> develop
              <div class="absolute inset-0 z-10 bg-white/60 backdrop-blur-[2px] rounded-3xl flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-indigo-100/50">
                 <div class="bg-white p-4 rounded-full shadow-lg mb-4">
                    <i class="fa-solid fa-chart-pie text-3xl text-indigo-600 animate-pulse"></i>
@@ -129,13 +125,9 @@ if (hostname === PROD_HOSTNAME) {
                 <p class="text-gray-500 max-w-sm mx-auto">Fill out the campaign details on the left to generate your custom AI analysis</p>
              </div>
              <!-- Render Dashboard with Sample Data (Blurred BG) -->
-<<<<<<< HEAD
-             <Dashboard :data="sampleData" is-sample class="opacity-50 pointer-events-none filter blur-sm select-none" />
-=======
              <div class="h-full overflow-hidden">
                 <Dashboard :data="sampleData" :is-sample="true" class="opacity-50 pointer-events-none filter blur-sm select-none" />
              </div>
->>>>>>> develop
           </div>
         </div>
 

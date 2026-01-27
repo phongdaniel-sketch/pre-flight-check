@@ -103,10 +103,7 @@ const gaugeColorClass = computed(() => {
     if (rating === 'Yellow') return 'text-pastel-canary';
     return 'text-pastel-coral';
 });
-<<<<<<< HEAD
 
-=======
->>>>>>> develop
 const statusLabel = computed(() => {
     const rating = props.data.final_rating;
     if (rating === 'Green') return 'Ready to Fly';
@@ -143,15 +140,9 @@ const statusColorClass = computed(() => {
                         <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Predictive Score</span>
                         <span class="text-5xl font-extrabold text-gray-800">{{ Math.round(data.predictive_score) }}</span>
                         <div class="flex items-center gap-1 mt-2">
-<<<<<<< HEAD
-                             <div class="w-2 h-1 rounded-full" :class="data.final_rating === 'Red' ? 'bg-pastel-coral' : 'bg-gray-200'"></div>
-                             <div class="w-2 h-1 rounded-full" :class="data.final_rating === 'Yellow' ? 'bg-pastel-canary' : 'bg-gray-200'"></div>
-                             <div class="w-2 h-1 rounded-full" :class="data.final_rating === 'Green' ? 'bg-pastel-mint' : 'bg-gray-200'"></div>
-=======
                             <div class="w-2 h-1 rounded-full" :class="data.final_rating === 'Red' ? 'bg-pastel-coral' : 'bg-gray-200'"></div>
                             <div class="w-2 h-1 rounded-full" :class="data.final_rating === 'Yellow' ? 'bg-pastel-canary' : 'bg-gray-200'"></div>
                             <div class="w-2 h-1 rounded-full" :class="data.final_rating === 'Green' ? 'bg-pastel-mint' : 'bg-gray-200'"></div>
->>>>>>> develop
                         </div>
                     </div>
                 </div>
@@ -192,15 +183,7 @@ const statusColorClass = computed(() => {
 
     </div>
     
-<<<<<<< HEAD
-    <!-- Policy Check -->
-    <div v-if="!isSample" class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-50">
-       <div class="flex items-center gap-2 mb-4">
-          <i class="fa-solid fa-shield-halved text-indigo-500"></i>
-          <h3 class="font-bold text-gray-800">Policy Check</h3>
-       </div>
-=======
->>>>>>> develop
+
 
 
     <!-- Assessment -->
