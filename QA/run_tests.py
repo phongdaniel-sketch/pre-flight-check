@@ -4,6 +4,15 @@ import sys
 import time
 from typing import Dict, Any
 
+# Vercel Deployment Protection Bypass Token
+VERCEL_BYPASS_TOKEN = "preflightcheckqatesting202612345"
+
+def get_headers():
+    """Get headers with Vercel bypass token for staging environment"""
+    return {
+        'x-vercel-protection-bypass': VERCEL_BYPASS_TOKEN
+    }
+
 def run_test(name: str, func) -> bool:
     print(f"Testing {name}...", end=" ")
     try:
@@ -15,7 +24,11 @@ def run_test(name: str, func) -> bool:
         return False
 
 def test_health(base_url: str):
-    response = httpx.get(f"{base_url}/api/health", timeout=10.0)
+    response = httpx.get(
+        f"{base_url}/api/health", 
+        headers=get_headers(),
+        timeout=10.0
+    )
     if response.status_code != 200:
         raise Exception(f"Status {response.status_code} != 200")
     data = response.json()
@@ -37,7 +50,12 @@ def test_analyze_flow(base_url: str):
     # We won't send a file, relying on video_url from N8N mock or just LP analysis
     # Since backend requires either video_file, video_url_input OR landing_page_url, we have LP.
     
-    response = httpx.post(f"{base_url}/api/analyze", data=data, timeout=30.0)
+    response = httpx.post(
+        f"{base_url}/api/analyze", 
+        data=data,
+        headers=get_headers(),
+        timeout=30.0
+    )
     
     if response.status_code != 200:
         raise Exception(f"Status {response.status_code}: {response.text}")
@@ -53,7 +71,12 @@ def test_analyze_flow(base_url: str):
 
 def test_validation_error(base_url: str):
     # Send empty data
-    response = httpx.post(f"{base_url}/api/analyze", data={}, timeout=10.0)
+    response = httpx.post(
+        f"{base_url}/api/analyze", 
+        data={},
+        headers=get_headers(),
+        timeout=10.0
+    )
     if response.status_code != 422:
         raise Exception(f"Expected 422 for empty payload, got {response.status_code}")
 
@@ -63,7 +86,12 @@ def main():
     args = parser.parse_args()
     
     base_url = args.url.rstrip("/")
-    print(f"🚀 Starting QA Tests against: {base_url}\n")
+    print(f"🚀 Starting QA Tests against: {base_url}")
+    
+    # Show bypass token info if testing staging
+    if "vercel.app" in base_url and "pre-flight-check-kohl" not in base_url:
+        print(f"🔑 Using Vercel bypass token: {VERCEL_BYPASS_TOKEN[:8]}...{VERCEL_BYPASS_TOKEN[-4:]}")
+    print()
     
     tests = [
         ("Health Check", lambda: test_health(base_url)),

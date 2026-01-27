@@ -58,12 +58,15 @@ const countrySearchInput = ref(null);
 const filteredCountries = computed(() => {
     if (!countrySearchQuery.value) return countries;
     const query = countrySearchQuery.value.toLowerCase();
-    return countries.filter(c => c.name.toLowerCase().includes(query));
+    return countries.filter(c => 
+        c.name.toLowerCase().includes(query) || 
+        c.code.toLowerCase().includes(query)
+    );
 });
 
 const selectedCountryLabel = computed(() => {
     const c = countries.find(c => c.code === formData.value.country);
-    return c ? c.name : formData.value.country;
+    return c ? `${c.name} (${c.code})` : formData.value.country;
 });
 
 const selectCountry = (country) => {
@@ -363,7 +366,10 @@ const selectIndustry = (industry) => {
                   class="px-4 py-2 hover:bg-indigo-50 cursor-pointer flex items-center justify-between group transition-colors"
                   :class="{'bg-indigo-50/50': formData.country === country.code}"
                >
-                  <span class="text-sm font-medium text-gray-700 group-hover:text-indigo-700">{{ country.name }}</span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-gray-700 group-hover:text-indigo-700">{{ country.name }}</span>
+                    <span class="text-xs text-gray-400 font-mono">({{ country.code }})</span>
+                  </div>
                   <span v-if="formData.country === country.code" class="text-indigo-600"><i class="fa-solid fa-check"></i></span>
                </div>
                <div v-if="filteredCountries.length === 0" class="p-4 text-center text-gray-400 text-xs">
