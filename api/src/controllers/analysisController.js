@@ -14,7 +14,8 @@ export class AnalysisController {
             // 1. Extract Form Data
             const {
                 industry_id, target_cpa, country, budget,
-                landing_page_url, video_url_input
+                landing_page_url, video_url_input,
+                creative_metrics // [NEW] Client-side metrics
             } = req.body || {};
 
             // Basic Validation
@@ -55,18 +56,12 @@ export class AnalysisController {
                 promises.push(Promise.resolve(null));
             }
 
-            // Creative Analysis (Remote Python Service)
-            let creativePromiseIndex = -1;
-            if (hasVideo) {
-                const analyzer = new CreativeAnalyzer();
-                promises.push(analyzer.analyzeRemote(videoUrl));
-                creativePromiseIndex = 2;
-            }
+            // Server-Side Creative Analysis Removed. 
+            // We use `creative_metrics` from Client.
 
             const results = await Promise.all(promises);
             const videoResult = results[0];
             const lpResult = results[1];
-            const creativeResult = creativePromiseIndex !== -1 ? results[creativePromiseIndex] : { creative: {} };
 
             // 5. Aggregation
             let videoPolicySafe = true;
@@ -90,13 +85,15 @@ export class AnalysisController {
             if (!videoPolicySafe) finalReasons.push(`Video: ${videoPolicyReason}`);
             if (!lpPolicySafe) finalReasons.push(`LP: ${lpPolicyReason}`);
 
-            // Creative Metrics
-            const creativeData = creativeResult.creative || {};
+            const reasonStr = finalReasons.length ? finalReasons.join('; ') : "Policy Safe";
+
+            // Creative Metrics (From Client)
+            const clientCreative = creative_metrics || {};
             const creativeRes = {
-                hook_score: creativeData.hook || 0,
-                pacing_score: creativeData.pacing || 0,
-                safe_zone: creativeData.safe_zone || false,
-                duration_seconds: creativeData.duration || 0
+                hook_score: clientCreative.hook_score || 0,
+                pacing_score: clientCreative.pacing_score || 0,
+                safe_zone: clientCreative.safe_zone || false,
+                duration_seconds: clientCreative.duration_seconds || 0
             };
 
             // 6. Scoring
@@ -105,8 +102,6 @@ export class AnalysisController {
                 ? ScoringEngine.calculateFinalScore(benchmarkScore, dnaScore)
                 : 0.0;
             const finalRating = ScoringEngine.getRating(predictiveScore, finalIsSafe);
-
-            const reasonStr = finalReasons.length ? finalReasons.join('; ') : "Policy Safe";
 
             // 7. Cleanup (No local file cleanup needed as we didn't download)
 
