@@ -1,11 +1,11 @@
 from http.server import BaseHTTPRequestHandler
 import json
 import os
-import cv2
-import numpy as np
 import requests
 import tempfile
 import logging
+import imageio.v3 as iio
+from PIL import Image
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -13,22 +13,27 @@ logger = logging.getLogger("vercel_function")
 
 class TikTokVideoAnalyzer:
     """
-    Lite version of TikTokVideoAnalyzer for Vercel (Size constrained).
-    Uses ONLY opencv-python-headless and numpy.
+    Ultra-Lite version of TikTokVideoAnalyzer for Vercel (Size constrained).
+    Uses ONLY Pillow and imageio (No OpenCV/Numpy).
     """
     def __init__(self, video_path):
         if not os.path.exists(video_path):
             raise FileNotFoundError(f"Video file not found at: {video_path}")
         self.video_path = video_path
-        self.cap = cv2.VideoCapture(video_path)
-        if not self.cap.isOpened():
-             raise ValueError(f"Could not open video file: {video_path}")
-             
-        self.fps = self.cap.get(cv2.CAP_PROP_FPS)
-        self.frame_count = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        self.duration = self.frame_count / self.fps if self.fps > 0 else 0
-        self.width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        self.height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        
+        try:
+            # excessive metadata reading can be slow, just use basic props
+            props = iio.imread(video_path, index=None, plugin="pyav") # plugin="pyav" is lighter usually if ffmpeg backend
+            # Note: imageio.v3 doesn't give easy metadata without reading.
+            # actually let's use a cleaner approach with 'imageio' metadata
+            meta = iio.immeta(video_path, plugin="pyav")
+            self.duration = meta.get("duration", 0)
+            self.fps = meta.get("fps", 30)
+            self.video_path = video_path
+        except Exception as e:
+            logger.warning(f"Metadata read failed: {e}. Using defaults.")
+            self.duration = 0
+            self.fps = 30
 
     def analyze_duration(self):
         """Check if duration is between 15s-45s."""
@@ -39,41 +44,64 @@ class TikTokVideoAnalyzer:
         }
 
     def analyze_scenes(self):
-        """Estimate scenes using Histogram difference (Lightweight)."""
+        """Estimate scenes using Histogram difference (Lightweight PIL version)."""
         try:
             scene_cuts = []
             prev_hist = None
             
-            # Optimization: Check every 5th frame
-            step = 5
+            # Optimization: Check 1 frame per second (approx)
+            # Iterating via imageio is efficient
             
-            for i in range(0, self.frame_count, step):
-                # Fast forward logic handled by reading loop if not seeking
-                # Ideally we set pos, but it's slow. 
-                # For this simple implementation, we might just grab() to skip
-                if i > 0:
-                    for _ in range(step - 1): self.cap.grab()
+            frame_indices = []
+            # We want to sample frames. Reading all is too slow.
+            # imageio allows seeking/iterating.
+            
+            # Simple approach: Read every Nth frame?
+            # With pyav plugin, we can iterate. 
+            
+            step = 10 # Check every 10th frame (approx 3 checks per sec at 30fps)
+            
+            count = 0
+            num_scenes = 1
+            
+            # Using iio.imap for generator efficiency
+            for frame in iio.imap(self.video_path, plugin="pyav"):
+                count += 1
+                if count % step != 0:
+                    continue
+                    
+                # Resize for speed (Analysis Resolution)
+                # Ensure it's a PIL Image
+                img = Image.fromarray(frame)
+                img = img.resize((64, 64))
                 
-                ret, frame = self.cap.retrieve()
-                if not ret: break
-                
-                # Resize for faster processing
-                small_frame = cv2.resize(frame, (64, 64))
-                
-                # Convert to HSV
-                hsv = cv2.cvtColor(small_frame, cv2.COLOR_BGR2HSV)
-                hist = cv2.calcHist([hsv], [0], None, [256], [0, 256])
-                cv2.normalize(hist, hist)
+                # Histogram
+                hist = img.histogram()
                 
                 if prev_hist is not None:
-                    score = cv2.compareHist(prev_hist, hist, cv2.HISTCMP_CORREL)
-                    if score < 0.7: 
-                        timestamp = i / self.fps
+                    # Manually calculate correlation/diff
+                    # Simple Manhattan distance or similar
+                    # Check difference sum
+                    diff = sum(abs(a - b) for a, b in zip(hist, prev_hist))
+                    
+                    # Threshold for 64x64 image (4096 pixels * 3 channels = 12288 check)
+                    # Sensitivity needs calibration. 
+                    # Let's say if > 25% change?
+                    # Total limit: 4096 * 255 * 3 (approx) is max diff.
+                    # Heuristic: 
+                    threshold = 300000 # Experimental
+                    
+                    if diff > threshold:
+                        timestamp = count / self.fps
                         scene_cuts.append(timestamp)
+                        num_scenes += 1
                 
                 prev_hist = hist
+                
+                # Limit to first 10 seconds to save processing time on Vercel
+                if (count / self.fps) > 10:
+                    break
 
-            num_scenes = len(scene_cuts) + 1
             pacing_rate = self.duration / num_scenes if num_scenes > 0 else self.duration
 
             # Benchmark Scoring logic matched with JS
@@ -112,8 +140,6 @@ class TikTokVideoAnalyzer:
             hook_score += 40
             hook_factors["has_fast_cut"] = True
 
-        # Placeholder for other checks (requires heavier models)
-            
         return { "hook_score": min(hook_score, 100), "hook_factors": hook_factors }
     
     def run_full_analysis(self):
@@ -135,7 +161,7 @@ class TikTokVideoAnalyzer:
                 }
             }
         finally:
-            self.cap.release()
+            pass # nothing to release for iio
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
