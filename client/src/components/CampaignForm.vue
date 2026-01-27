@@ -29,9 +29,56 @@ const uploadProgress = ref(0);
 const isUploading = ref(false);
 const isAnalyzing = ref(false); // Analysis State
 
-// ... (Country Dropdown Logic - Unchanged)
+// Country Logic
+const countries = [
+    { code: 'US', name: 'United States' },
+    { code: 'GB', name: 'United Kingdom' },
+    { code: 'CA', name: 'Canada' },
+    { code: 'AU', name: 'Australia' },
+    { code: 'DE', name: 'Germany' },
+    { code: 'FR', name: 'France' },
+    { code: 'JP', name: 'Japan' },
+    { code: 'KR', name: 'South Korea' },
+    { code: 'BR', name: 'Brazil' },
+    { code: 'ID', name: 'Indonesia' },
+    { code: 'VN', name: 'Vietnam' },
+    { code: 'TH', name: 'Thailand' },
+    { code: 'MY', name: 'Malaysia' },
+    { code: 'PH', name: 'Philippines' },
+    { code: 'SG', name: 'Singapore' },
+    { code: 'MX', name: 'Mexico' },
+    { code: 'ES', name: 'Spain' },
+    { code: 'IT', name: 'Italy' }
+];
 
-// ... (Watch Target CPA - Unchanged)
+const isCountryDropdownOpen = ref(false);
+const countrySearchQuery = ref('');
+const countrySearchInput = ref(null);
+
+const filteredCountries = computed(() => {
+    if (!countrySearchQuery.value) return countries;
+    const query = countrySearchQuery.value.toLowerCase();
+    return countries.filter(c => c.name.toLowerCase().includes(query));
+});
+
+const selectedCountryLabel = computed(() => {
+    const c = countries.find(c => c.code === formData.value.country);
+    return c ? c.name : formData.value.country;
+});
+
+const selectCountry = (country) => {
+    formData.value.country = country.code;
+    isCountryDropdownOpen.value = false;
+    countrySearchQuery.value = '';
+};
+
+// Budget Logic
+const updateBudget = () => {
+    // Recommend budget = 50 * CPA
+    if (formData.value.target_cpa) {
+        formData.value.budget = formData.value.target_cpa * 50;
+    }
+};
 
 const handleFileChange = async (event) => {
     const file = event.target.files[0];
