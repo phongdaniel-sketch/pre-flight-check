@@ -5,3 +5,4 @@ server/node_modules
 *.pyc
 __pycache__
 legacy_api
+api/node_modules
