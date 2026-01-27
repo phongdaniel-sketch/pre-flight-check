@@ -1,11 +1,22 @@
 import ffmpeg from 'fluent-ffmpeg';
-import pathToFfmpeg from 'ffmpeg-static';
-import pathToFfprobe from 'ffprobe-static';
 import fs from 'fs';
 
-// Set ffmpeg & ffprobe paths
-ffmpeg.setFfmpegPath(pathToFfmpeg);
-ffmpeg.setFfprobePath(pathToFfprobe.path);
+// Helper to load binaries dynamically (avoid bundling on Serverless)
+async function loadFfmpegBinaries() {
+    try {
+        const ffmpegPath = (await import('ffmpeg-static')).default;
+        const ffprobePath = (await import('ffprobe-static')).default;
+
+        if (ffmpegPath && ffprobePath && ffprobePath.path) {
+            ffmpeg.setFfmpegPath(ffmpegPath);
+            ffmpeg.setFfprobePath(ffprobePath.path);
+            return true;
+        }
+    } catch (e) {
+        console.warn("FFmpeg binaries not found (likely serverless env). Skipping local analysis.");
+    }
+    return false;
+}
 
 export class CreativeAnalyzer {
     constructor(videoPath) {
@@ -16,6 +27,13 @@ export class CreativeAnalyzer {
     }
 
     async runFullAnalysis() {
+        // Initialize binaries
+        const hasBinaries = await loadFfmpegBinaries();
+        if (!hasBinaries) {
+            console.log("Skipping Local Analysis: FFmpeg not available.");
+            return { creative: {} };
+        }
+
         console.log("Starting Local Analysis (Node.js + ffmpeg)...");
         try {
             const metadata = await this.getMetadata();

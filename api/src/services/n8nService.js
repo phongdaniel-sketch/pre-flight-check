@@ -77,11 +77,29 @@ export class N8nClient {
             if (reviews.length > 0) {
                 const review = reviews[0];
                 const status = review.AnalysisResult || "Unknown";
-                const isCompliant = status.toLowerCase() === "compliant";
-                const reason = isCompliant ? "Landing Page Compliant" : (review.ViolationDetails || review.Recommendation || "Policy Violation");
+                const recommendation = review.Recommendation || "";
+
+                // Logic sync with Video: Check for Non-Compliant OR Reject recommendation
+                let isSafe = true;
+                let reason = "Landing Page Compliant";
+
+                if (status === "Non-Compliant" || recommendation.includes("Reject")) {
+                    isSafe = false;
+                    const details = review.ViolationDetails || "";
+                    const violationType = review.ViolationType || "Policy Violation";
+                    reason = details ? `${violationType}: ${details}` : violationType;
+                } else if (status === "Flagged for Review") {
+                    isSafe = false;
+                    const details = review.ViolationDetails || "";
+                    reason = details ? `Flagged for Manual Review: ${details}` : "Flagged for Manual Review";
+                } else if (status.toLowerCase() !== "compliant") {
+                    // Fallback for unknown status that isn't explicitly compliant
+                    isSafe = false;
+                    reason = review.ViolationDetails || recommendation || "Policy Violation (Unknown Status)";
+                }
 
                 return {
-                    policy: { is_safe: isCompliant, reason: reason }
+                    policy: { is_safe: isSafe, reason: reason }
                 };
             }
 
