@@ -4,8 +4,12 @@ import fs from 'fs';
 // Helper to load binaries dynamically (avoid bundling on Serverless)
 async function loadFfmpegBinaries() {
     try {
-        const ffmpegPath = (await import('ffmpeg-static')).default;
-        const ffprobePath = (await import('ffprobe-static')).default;
+        // Obfuscate imports to prevent Vercel NFT from bundling these devDependencies
+        const ffmpegPkg = 'ffmpeg-static';
+        const ffprobePkg = 'ffprobe-static';
+
+        const ffmpegPath = (await import(ffmpegPkg)).default;
+        const ffprobePath = (await import(ffprobePkg)).default;
 
         if (ffmpegPath && ffprobePath && ffprobePath.path) {
             ffmpeg.setFfmpegPath(ffmpegPath);
