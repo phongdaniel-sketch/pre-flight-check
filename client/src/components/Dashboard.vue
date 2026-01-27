@@ -103,6 +103,7 @@ const gaugeColorClass = computed(() => {
     if (rating === 'Yellow') return 'text-pastel-canary';
     return 'text-pastel-coral';
 });
+
 const statusLabel = computed(() => {
     const rating = props.data.final_rating;
     if (rating === 'Green') return 'Ready to Fly';
@@ -184,6 +185,7 @@ const statusColorClass = computed(() => {
     
 
 
+
     <!-- Assessment -->
     <div v-if="!isSample" class="bg-indigo-50/30 p-6 rounded-2xl border border-indigo-100">
          <div class="flex items-center gap-2 mb-4">
@@ -220,7 +222,7 @@ const statusColorClass = computed(() => {
     </div>
 
     <!-- Creative DNA Details -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-50">
+    <div v-if="!isSample" class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-50">
         <div class="flex items-center gap-2 mb-4">
           <i class="fa-solid fa-wand-magic-sparkles text-indigo-500"></i>
           <h3 class="font-bold text-gray-800">Creative DNA</h3>
