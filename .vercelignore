@@ -7,3 +7,11 @@ __pycache__
 legacy_api
 api/node_modules
 api/src/uploads
+
+*.py
+*.pyc
+__pycache__/
+venv/
+backend/
+pre_flight_check/
+requirements.txt
