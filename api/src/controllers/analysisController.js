@@ -148,8 +148,15 @@ export class AnalysisController {
 
             const reasonStr = finalReasons.length ? finalReasons.join('; ') : "Policy Safe";
 
-            // 7. Cleanup (Optional: Delete temp file if needed, but maybe keep for cache?)
-            // fs.unlinkSync(localVideoPath); 
+            // 7. Cleanup (Delete temp file to save space)
+            if (localVideoPath && fs.existsSync(localVideoPath)) {
+                try {
+                    fs.unlinkSync(localVideoPath);
+                    console.log(`Cleaned up temp video: ${localVideoPath}`);
+                } catch (cleanupErr) {
+                    console.error("Cleanup Error:", cleanupErr.message);
+                }
+            }
 
             // 8. Save to DB
             try {

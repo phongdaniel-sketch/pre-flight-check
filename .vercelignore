@@ -6,3 +6,4 @@ server/node_modules
 __pycache__
 legacy_api
 api/node_modules
+api/src/uploads

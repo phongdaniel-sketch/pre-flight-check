@@ -25,3 +25,4 @@ api/__pycache__/
 pre_flight_check/__pycache__/
 .vercel
 .env*.local
+api/src/uploads/
