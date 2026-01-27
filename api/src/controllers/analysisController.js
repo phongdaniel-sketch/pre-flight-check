@@ -22,48 +22,9 @@ export class AnalysisController {
                 return res.status(422).json({ detail: "Missing required fields (industry_id, target_cpa, budget)" });
             }
 
-            // 2. Handle Video Input (URL Only now)
-            // Clean up input
+            // 2. Handle Video Input
             let videoUrl = video_url_input ? video_url_input.trim() : "";
-            let localVideoPath = null;
-            let hasVideo = false;
-
-            // If uploaded via Firebase, we get a URL.
-            // If via TikTok link, we get a URL.
-            // We no longer accept raw files via FormData to avoid Vercel limits.
-
-            if (videoUrl) {
-                hasVideo = true;
-                // Download video from URL (Firebase or External)
-                try {
-                    console.log(`Downloading video from ${videoUrl}...`);
-                    const fileId = uuidv4();
-                    const ext = "mp4";
-                    // Use /tmp for Vercel compatibility
-                    const uploadDir = process.env.VERCEL ? "/tmp" : path.join(process.cwd(), "api/src/uploads");
-                    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-
-                    localVideoPath = path.join(uploadDir, `${fileId}.${ext}`);
-
-                    const response = await axios({
-                        method: 'get',
-                        url: videoUrl,
-                        responseType: 'stream',
-                        // ... headers logic? Firebase urls don't need TikTok referrer usually, but harmless
-                    });
-
-                    const writer = fs.createWriteStream(localVideoPath);
-                    response.data.pipe(writer);
-
-                    await new Promise((resolve, reject) => {
-                        writer.on('finish', resolve);
-                        writer.on('error', reject);
-                    });
-                    console.log(`Downloaded to ${localVideoPath}`);
-                } catch (err) {
-                    console.error("Video Download Failed:", err.message);
-                }
-            }
+            let hasVideo = !!videoUrl;
 
             // 3. Benchmark Calculation
             const benchmarkScore = BenchmarkService.calculateBenchmarkScore(Number(target_cpa), industry_id);
@@ -80,9 +41,8 @@ export class AnalysisController {
 
             const promises = [];
 
-            // Video Analysis (N8N)
-            // Trust the URL (Firebase or Public)
-            if (hasVideo && videoUrl) {
+            // Video Policy Analysis (N8N)
+            if (hasVideo) {
                 promises.push(n8n.analyzeVideo(videoUrl, campaignContext));
             } else {
                 promises.push(Promise.resolve(null));
@@ -95,12 +55,12 @@ export class AnalysisController {
                 promises.push(Promise.resolve(null));
             }
 
-            // Local Creative Analysis (Video File)
+            // Creative Analysis (Remote Python Service)
             let creativePromiseIndex = -1;
-            if (hasVideo && localVideoPath && fs.existsSync(localVideoPath)) {
-                const analyzer = new CreativeAnalyzer(localVideoPath);
-                promises.push(analyzer.runFullAnalysis());
-                creativePromiseIndex = 2; // Index in results
+            if (hasVideo) {
+                const analyzer = new CreativeAnalyzer();
+                promises.push(analyzer.analyzeRemote(videoUrl));
+                creativePromiseIndex = 2;
             }
 
             const results = await Promise.all(promises);
@@ -148,15 +108,7 @@ export class AnalysisController {
 
             const reasonStr = finalReasons.length ? finalReasons.join('; ') : "Policy Safe";
 
-            // 7. Cleanup (Delete temp file to save space)
-            if (localVideoPath && fs.existsSync(localVideoPath)) {
-                try {
-                    fs.unlinkSync(localVideoPath);
-                    console.log(`Cleaned up temp video: ${localVideoPath}`);
-                } catch (cleanupErr) {
-                    console.error("Cleanup Error:", cleanupErr.message);
-                }
-            }
+            // 7. Cleanup (No local file cleanup needed as we didn't download)
 
             // 8. Save to DB
             try {
