@@ -14,7 +14,8 @@ export class AnalysisController {
             // 1. Extract Form Data
             const {
                 industry_id, target_cpa, country, budget,
-                landing_page_url, video_url_input
+                landing_page_url, video_url_input,
+                creative_metrics // [NEW] Client-side metrics
             } = req.body || {};
 
             // Basic Validation
@@ -22,69 +23,9 @@ export class AnalysisController {
                 return res.status(422).json({ detail: "Missing required fields (industry_id, target_cpa, budget)" });
             }
 
-            const videoFile = req.file;
+            // 2. Handle Video Input
             let videoUrl = video_url_input ? video_url_input.trim() : "";
-            let localVideoPath = null;
-            let hasVideo = false;
-
-            // 2. Handle Video Input (File or URL)
-            if (videoUrl) {
-                hasVideo = true;
-                // Download video if URL provided
-                try {
-                    console.log(`Downloading video from ${videoUrl}...`);
-                    const fileId = uuidv4();
-                    const ext = "mp4";
-                    // Use /tmp for Vercel compatibility
-                    const uploadDir = process.env.VERCEL ? "/tmp" : path.join(process.cwd(), "api/src/uploads");
-
-                    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-
-                    localVideoPath = path.join(uploadDir, `${fileId}.${ext}`);
-
-                    const response = await axios({
-                        method: 'get',
-                        url: videoUrl,
-                        responseType: 'stream',
-                        headers: {
-                            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-                            "Referer": "https://www.tiktok.com/"
-                        }
-                    });
-
-                    const writer = fs.createWriteStream(localVideoPath);
-                    response.data.pipe(writer);
-
-                    await new Promise((resolve, reject) => {
-                        writer.on('finish', resolve);
-                        writer.on('error', reject);
-                    });
-                    console.log(`Downloaded to ${localVideoPath}`);
-
-                } catch (err) {
-                    console.error("Video Download Failed:", err.message);
-                    // Non-fatal? If download fails, we can't do local analysis.
-                    // But we can still do N8N analysis if N8N can access the URL.
-                    // Assuming N8N can access the URL.
-                }
-
-            } else if (videoFile) {
-                hasVideo = true;
-                localVideoPath = videoFile.path; // Multer saves it
-                // We need a public URL for N8N? 
-                // In local dev, we can't expose local file to N8N easily without ngrok.
-                // For now, if file uploaded locally, N8N analysis might fail if it expects a public URL.
-                // WE NEED TO UPLOAD TO CLOUD OR SKIP N8N VIDEO ANALYSIS FOR LOCAL FILES?
-                // The Python version used `http://localhost:8000/static/uploads/...` which assumes N8N can hit localhost (impossible if N8N is cloud).
-                // Actually, the Python version *did* construct a localhost URL.
-                // If N8N is cloud, it can't reach localhost.
-                // So, for now, we leave videoUrl empty?
-                // Or we serve it statically.
-                const fileId = videoFile.filename;
-                const protocol = req.headers['x-forwarded-proto'] || req.protocol;
-                const host = req.get('host');
-                videoUrl = `${protocol}://${host}/uploads/${fileId}`;
-            }
+            let hasVideo = !!videoUrl;
 
             // 3. Benchmark Calculation
             const benchmarkScore = BenchmarkService.calculateBenchmarkScore(Number(target_cpa), industry_id);
@@ -101,24 +42,9 @@ export class AnalysisController {
 
             const promises = [];
 
-            // Video Analysis (N8N)
-            // Skip N8N if videoUrl is localhost OR if we are on Vercel with a local file (cannot be accessed externally due to ephemeral storage)
+            // Video Policy Analysis (N8N)
             if (hasVideo) {
-                const isLocalhost = videoUrl.includes('localhost') || videoUrl.includes('127.0.0.1');
-                const isVercelFileUpload = process.env.VERCEL && localVideoPath;
-
-                if (isLocalhost || isVercelFileUpload) {
-                    console.warn(`Skipping N8N for Upload. Localhost=${isLocalhost}, Vercel=${!!isVercelFileUpload}`);
-                    promises.push(Promise.resolve({
-                        policy: {
-                            is_safe: true,
-                            reason: "File Upload: N8N Skipped (Vercel/Local storage not accessible externally)"
-                        },
-                        creative: {} // Will be filled by analyzer below
-                    }));
-                } else {
-                    promises.push(n8n.analyzeVideo(videoUrl, campaignContext));
-                }
+                promises.push(n8n.analyzeVideo(videoUrl, campaignContext));
             } else {
                 promises.push(Promise.resolve(null));
             }
@@ -130,18 +56,12 @@ export class AnalysisController {
                 promises.push(Promise.resolve(null));
             }
 
-            // Local Creative Analysis (Video File)
-            let creativePromiseIndex = -1;
-            if (hasVideo && localVideoPath && fs.existsSync(localVideoPath)) {
-                const analyzer = new CreativeAnalyzer(localVideoPath);
-                promises.push(analyzer.runFullAnalysis());
-                creativePromiseIndex = 2; // Index in results
-            }
+            // Server-Side Creative Analysis Removed. 
+            // We use `creative_metrics` from Client.
 
             const results = await Promise.all(promises);
             const videoResult = results[0];
             const lpResult = results[1];
-            const creativeResult = creativePromiseIndex !== -1 ? results[creativePromiseIndex] : { creative: {} };
 
             // 5. Aggregation
             let videoPolicySafe = true;
@@ -165,13 +85,15 @@ export class AnalysisController {
             if (!videoPolicySafe) finalReasons.push(`Video: ${videoPolicyReason}`);
             if (!lpPolicySafe) finalReasons.push(`LP: ${lpPolicyReason}`);
 
-            // Creative Metrics
-            const creativeData = creativeResult.creative || {};
+            const reasonStr = finalReasons.length ? finalReasons.join('; ') : "Policy Safe";
+
+            // Creative Metrics (From Client)
+            const clientCreative = creative_metrics || {};
             const creativeRes = {
-                hook_score: creativeData.hook || 0,
-                pacing_score: creativeData.pacing || 0,
-                safe_zone: creativeData.safe_zone || false,
-                duration_seconds: creativeData.duration || 0
+                hook_score: clientCreative.hook_score || 0,
+                pacing_score: clientCreative.pacing_score || 0,
+                safe_zone: clientCreative.safe_zone || false,
+                duration_seconds: clientCreative.duration_seconds || 0
             };
 
             // 6. Scoring
@@ -181,10 +103,7 @@ export class AnalysisController {
                 : 0.0;
             const finalRating = ScoringEngine.getRating(predictiveScore, finalIsSafe);
 
-            const reasonStr = finalReasons.length ? finalReasons.join('; ') : "Policy Safe";
-
-            // 7. Cleanup (Optional: Delete temp file if needed, but maybe keep for cache?)
-            // fs.unlinkSync(localVideoPath); 
+            // 7. Cleanup (No local file cleanup needed as we didn't download)
 
             // 8. Save to DB
             try {

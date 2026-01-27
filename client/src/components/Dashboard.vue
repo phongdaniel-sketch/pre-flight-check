@@ -103,7 +103,10 @@ const gaugeColorClass = computed(() => {
     if (rating === 'Yellow') return 'text-pastel-canary';
     return 'text-pastel-coral';
 });
+<<<<<<< HEAD
 
+=======
+>>>>>>> develop
 const statusLabel = computed(() => {
     const rating = props.data.final_rating;
     if (rating === 'Green') return 'Ready to Fly';
@@ -121,15 +124,15 @@ const statusColorClass = computed(() => {
 
 <template>
   <div class="space-y-6 animate-fade-in-up">
-    <!-- Top Row: Scores and Metrics -->
+    <!-- Top Row: 3 Circular Gauges -->
     <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden">
-        <!-- Floating Watermark/Icon style from reference -->
+        <!-- Floating Watermark/Icon -->
         <div class="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
             <i class="fa-solid fa-chart-line text-9xl text-indigo-900"></i>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center relative z-10">
-            <!-- Left: Score Gauge -->
+            <!-- Left: Predictive Score Gauge (Large) -->
             <div class="md:col-span-5 flex flex-col items-center border-r border-gray-100 pr-8">
                 <div class="w-48 h-48 relative mb-4">
                     <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
@@ -140,78 +143,65 @@ const statusColorClass = computed(() => {
                         <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Predictive Score</span>
                         <span class="text-5xl font-extrabold text-gray-800">{{ Math.round(data.predictive_score) }}</span>
                         <div class="flex items-center gap-1 mt-2">
+<<<<<<< HEAD
                              <div class="w-2 h-1 rounded-full" :class="data.final_rating === 'Red' ? 'bg-pastel-coral' : 'bg-gray-200'"></div>
                              <div class="w-2 h-1 rounded-full" :class="data.final_rating === 'Yellow' ? 'bg-pastel-canary' : 'bg-gray-200'"></div>
                              <div class="w-2 h-1 rounded-full" :class="data.final_rating === 'Green' ? 'bg-pastel-mint' : 'bg-gray-200'"></div>
+=======
+                            <div class="w-2 h-1 rounded-full" :class="data.final_rating === 'Red' ? 'bg-pastel-coral' : 'bg-gray-200'"></div>
+                            <div class="w-2 h-1 rounded-full" :class="data.final_rating === 'Yellow' ? 'bg-pastel-canary' : 'bg-gray-200'"></div>
+                            <div class="w-2 h-1 rounded-full" :class="data.final_rating === 'Green' ? 'bg-pastel-mint' : 'bg-gray-200'"></div>
+>>>>>>> develop
                         </div>
                     </div>
                 </div>
                 <span class="px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide transition-colors" :class="statusColorClass">{{ statusLabel }}</span>
             </div>
 
-            <!-- Middle/Right: Benchmark & DNA Cards -->
+            <!-- Right: Metrics Cards -->
             <div class="md:col-span-7 grid grid-cols-2 gap-6">
                 <!-- Benchmark Card -->
                 <div class="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-50 flex flex-col items-center justify-center text-center">
-                    <div class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-3">Benchmark</div>
-                    <span class="text-3xl font-extrabold text-indigo-900" id="benchmarkVal">{{ Math.round(data.benchmark_score) }}</span>
-                    <div class="w-12 h-1 bg-indigo-200 rounded-full mt-2"></div>
+                    <div class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-2">Benchmark</div>
+                    <span class="text-4xl font-extrabold text-indigo-900" id="benchmarkVal">{{ Math.round(data.benchmark_score) }}</span>
+                    <div class="w-8 h-1 bg-indigo-200 rounded-full mt-3"></div>
                 </div>
 
                 <!-- DNA Score Card -->
                 <div class="bg-purple-50/50 p-6 rounded-2xl border border-purple-50 flex flex-col items-center justify-center text-center">
-                    <div class="text-xs font-bold text-purple-400 uppercase tracking-widest mb-3">DNA Score</div>
-                     <span class="text-3xl font-extrabold text-purple-900">{{ data.dna_score.toFixed(0) }}</span>
-                     <div class="w-12 h-1 bg-purple-200 rounded-full mt-2"></div>
+                    <div class="text-[10px] font-bold text-purple-400 uppercase tracking-widest mb-2">DNA Score</div>
+                    <span class="text-4xl font-extrabold text-purple-900">{{ data.dna_score.toFixed(0) }}</span>
+                    <div class="w-8 h-1 bg-purple-200 rounded-full mt-3"></div>
                 </div>
 
-                 <!-- Policy Check Status Row (Spanning 2 cols) -->
+                <!-- Policy Check Status Row (Spanning 2 cols) -->
                 <div class="col-span-2 bg-white border border-gray-100 p-4 rounded-xl flex items-center justify-between px-6 shadow-sm">
                     <span class="text-sm font-semibold text-gray-600">Policy Check</span>
-                     <span v-if="isSafe" class="flex items-center gap-2 text-pastel-mint font-bold text-sm">
+                    <span v-if="isSafe" class="flex items-center gap-2 text-pastel-mint font-bold text-sm">
                         <i class="fa-solid fa-check"></i> Passed
                     </span>
                     <span v-else class="flex items-center gap-2 text-pastel-coral font-bold text-sm">
                         <i class="fa-solid fa-triangle-exclamation"></i> Issues Found
                     </span>
                 </div>
+
             </div>
         </div>
+
+        <!-- Policy Check Status Row -->
+
     </div>
     
+<<<<<<< HEAD
     <!-- Policy Check -->
     <div v-if="!isSample" class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-50">
        <div class="flex items-center gap-2 mb-4">
           <i class="fa-solid fa-shield-halved text-indigo-500"></i>
           <h3 class="font-bold text-gray-800">Policy Check</h3>
        </div>
+=======
+>>>>>>> develop
 
-       <div v-if="isSafe" class="bg-cream p-4 rounded-xl border border-indigo-100 flex items-center gap-3 px-6">
-           <i class="fa-solid fa-shield-check text-pastel-mint text-xl"></i>
-           <span class="text-sm font-bold text-gray-700">Safe</span>
-       </div>
-
-       <div v-else class="bg-cream p-5 rounded-xl border border-indigo-100 flex flex-col gap-3 px-6">
-           <div class="flex items-center gap-2 mb-1">
-               <i class="fa-solid fa-triangle-exclamation text-pastel-coral"></i> 
-               <span class="uppercase font-bold text-xs text-pastel-coral">Policy Warning</span>
-           </div>
-           
-           <div v-for="(reason, idx) in policyReasons" :key="idx" class="text-sm">
-               <div v-if="reason.badge" class="font-bold text-indigo-500 text-xs uppercase tracking-wide mb-1 block">
-                   {{ reason.badge }}:
-               </div>
-               
-               <div v-if="reason.details" class="bg-white/50 p-3 rounded-lg border border-indigo-100/50 mt-1">
-                   <div class="font-bold text-indigo-600 mb-1">{{ reason.content }}</div>
-                   <p class="text-gray-600 leading-snug whitespace-pre-wrap text-xs">{{ reason.details }}</p>
-               </div>
-               <div v-else class="text-gray-600 font-medium">
-                   {{ reason.content }}
-               </div>
-           </div>
-       </div>
-    </div>
 
     <!-- Assessment -->
     <div v-if="!isSample" class="bg-indigo-50/30 p-6 rounded-2xl border border-indigo-100">
