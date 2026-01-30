@@ -117,6 +117,10 @@ const statusColorClass = computed(() => {
     if (rating === 'Yellow') return 'bg-pastel-canary text-yellow-900';
     return 'bg-pastel-coral text-white';
 });
+
+const hasVideo = computed(() => {
+    return (props.data?.creative_metrics?.duration_seconds || 0) > 0 || !!props.data?.creative_metrics?.hook_score;
+});
 </script>
 
 <template>
@@ -159,9 +163,9 @@ const statusColorClass = computed(() => {
                 </div>
 
                 <!-- DNA Score Card -->
-                <div class="bg-purple-50/50 dark:bg-purple-900/20 p-6 rounded-2xl border border-purple-50 dark:border-purple-800 flex flex-col items-center justify-center text-center">
+                <div class="bg-purple-50/50 dark:bg-purple-900/20 p-6 rounded-2xl border border-purple-50 dark:border-purple-800 flex flex-col items-center justify-center text-center" :class="{'opacity-50 grayscale-[50%]': !hasVideo}">
                     <div class="text-[10px] font-bold text-purple-400 dark:text-purple-300 uppercase tracking-widest mb-2">DNA Score</div>
-                    <span class="text-4xl font-extrabold text-purple-900 dark:text-white">{{ (data.dna_score || 0).toFixed(0) }}</span>
+                    <span class="text-4xl font-extrabold text-purple-900 dark:text-white">{{ hasVideo ? (data.dna_score || 0).toFixed(0) : '—' }}</span>
                     <div class="w-8 h-1 bg-purple-200 dark:bg-purple-700 rounded-full mt-3"></div>
                 </div>
 
@@ -220,7 +224,7 @@ const statusColorClass = computed(() => {
     </div>
 
     <!-- Creative DNA Details -->
-    <div v-if="!isSample" class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-indigo-50 dark:border-gray-700 transition-colors duration-300">
+    <div v-if="!isSample && hasVideo" class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-indigo-50 dark:border-gray-700 transition-colors duration-300">
         <div class="flex items-center gap-2 mb-4">
           <i class="fa-solid fa-wand-magic-sparkles text-indigo-500 dark:text-indigo-400"></i>
           <h3 class="font-bold text-gray-800 dark:text-white">Creative DNA</h3>

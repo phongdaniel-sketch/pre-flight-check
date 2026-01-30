@@ -21,10 +21,10 @@ const AnalysisResultSchema = new mongoose.Schema({
         is_safe: Boolean,
         policy_reason: String,
         creative_metrics: {
-            hook: Number,
-            pacing: Number,
+            hook_score: Number,
+            pacing_score: Number,
             safe_zone: Boolean,
-            duration: Number
+            duration_seconds: Number
         }
     },
     status: {
