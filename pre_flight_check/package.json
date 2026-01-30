@@ -6,7 +6,8 @@
         "frontend": "cd frontend && npm run dev",
         "backend": "cd backend && node src/server.js",
         "dev": "npm run frontend",
-        "build": "cd frontend && npm install && npm run build -- --outDir ../public"
+        "build": "cd frontend && npm install && npm run build -- --outDir ../public",
+        "deploy:prod": "echo 'Building Production...' && cd frontend && npm install && npm run build:prod -- --outDir ../public && cd .. && echo 'Deploying...' && git add public && git commit -m \"deploy: production update $(date +%Y-%m-%d_%H-%M-%S)\" && git push"
     },
     "dependencies": {
         "axios": "^1.13.2",
