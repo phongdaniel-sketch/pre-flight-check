@@ -1,12 +1,6 @@
-// Bridge: Vercel CommonJS entry point -> ESM Backend
-const appPromise = import('../backend/src/server.js').then(m => m.default);
+import app from '../backend/src/server.js';
+export default app;
 
-module.exports = async (req, res) => {
-    const app = await appPromise;
-    return app(req, res);
-};
-
-// Vercel function configuration
-module.exports.config = {
+export const config = {
     maxDuration: 300,
 };
