@@ -1,8 +1,48 @@
-
+# Dependencies
 node_modules/
-*.log
-.DS_Store
-.env
-dist/
+.pnp
+.pnp.js
+
+# Testing
 coverage/
+
+# Production / Build
+dist/
+public/
+api/dist/
+frontend/dist/
+frontend/public/assets/
+assets/
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+*.env.*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+backend.log
+server.log
+frontend.log
+
+# Vercel
 .vercel
+
+# Uploads & Data
+static/uploads/
+uploads/
+backend/src/uploads/
+
+# IDE & OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
