@@ -1,0 +1,9 @@
+{
+    "version": 2,
+    "rewrites": [
+        {
+            "source": "/probe-frontend",
+            "destination": "https://google.com"
+        }
+    ]
+}

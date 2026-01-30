@@ -2,6 +2,10 @@
     "version": 2,
     "rewrites": [
         {
+            "source": "/probe-root",
+            "destination": "https://google.com"
+        },
+        {
             "source": "/api/(.*)",
             "destination": "/api/index.js"
         },
