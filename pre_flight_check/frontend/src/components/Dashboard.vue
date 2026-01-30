@@ -224,7 +224,7 @@ const hasVideo = computed(() => {
     </div>
 
     <!-- Creative DNA Details -->
-    <div v-if="!isSample && hasVideo" class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-indigo-50 dark:border-gray-700 transition-colors duration-300">
+    <div v-if="!isSample" class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-indigo-50 dark:border-gray-700 transition-colors duration-300" :class="{'opacity-50 grayscale-[50%]': !hasVideo}">
         <div class="flex items-center gap-2 mb-4">
           <i class="fa-solid fa-wand-magic-sparkles text-indigo-500 dark:text-indigo-400"></i>
           <h3 class="font-bold text-gray-800 dark:text-white">Creative DNA</h3>
@@ -235,7 +235,7 @@ const hasVideo = computed(() => {
             <div>
                 <div class="flex justify-between text-sm mb-1">
                     <span class="font-medium text-gray-600 dark:text-gray-400">Hook Score (3s)</span>
-                    <span class="font-bold text-indigo-600 dark:text-indigo-400">{{ data.creative_metrics.hook_score }}/100</span>
+                    <span class="font-bold text-indigo-600 dark:text-indigo-400">{{ hasVideo ? (data?.creative_metrics?.hook_score || 0) + '/100' : '—' }}</span>
                 </div>
                 <div class="w-full bg-gray-100 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
                     <div class="h-full bg-indigo-500 transition-all duration-1000" :style="{width: (data?.creative_metrics?.hook_score || 0) + '%'}"></div>
@@ -246,7 +246,7 @@ const hasVideo = computed(() => {
             <div>
                 <div class="flex justify-between text-sm mb-1">
                     <span class="font-medium text-gray-600 dark:text-gray-400">Pacing Score</span>
-                    <span class="font-bold text-purple-600 dark:text-purple-400">{{ (data?.creative_metrics?.pacing_score || 0) }}/100</span>
+                    <span class="font-bold text-purple-600 dark:text-purple-400">{{ hasVideo ? (data?.creative_metrics?.pacing_score || 0) + '/100' : '—' }}</span>
                 </div>
                 <div class="w-full bg-gray-100 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
                     <div class="h-full bg-purple-500 transition-all duration-1000" :style="{width: (data?.creative_metrics?.pacing_score || 0) + '%'}"></div>
@@ -255,12 +255,13 @@ const hasVideo = computed(() => {
 
             <div class="flex justify-between items-center py-2 border-t border-gray-100 dark:border-gray-700 mt-2">
                 <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Safe Zone</span>
-                <span v-if="data?.creative_metrics?.safe_zone" class="px-3 py-1 rounded-full bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-bold border border-green-100 dark:border-green-800">Compliant</span>
+                <span v-if="!hasVideo" class="text-xs font-bold text-gray-400">—</span>
+                <span v-else-if="data?.creative_metrics?.safe_zone" class="px-3 py-1 rounded-full bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-bold border border-green-100 dark:border-green-800">Compliant</span>
                 <span v-else class="px-3 py-1 rounded-full bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400 text-xs font-bold border border-red-100 dark:border-red-800">X Violation</span>
             </div>
              <div class="flex justify-between items-center py-2 border-t border-gray-100 dark:border-gray-700">
                 <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Duration</span>
-                <span class="text-sm font-bold text-gray-800 dark:text-white">{{ data?.creative_metrics?.duration_seconds || 0 }}s</span>
+                <span class="text-sm font-bold text-gray-800 dark:text-white">{{ hasVideo ? (data?.creative_metrics?.duration_seconds || 0) + 's' : '—' }}</span>
             </div>
        </div>
     </div>
