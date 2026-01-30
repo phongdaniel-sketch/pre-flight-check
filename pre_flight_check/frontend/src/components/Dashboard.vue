@@ -118,6 +118,39 @@ const statusColorClass = computed(() => {
     return 'bg-pastel-coral text-white';
 });
 
+const policyStatus = computed(() => {
+    const isSafeVal = isSafe.value;
+    const reason = props.data?.policy_check?.reason || props.data?.policy_reason || '';
+    const isManual = reason.includes('Flagged for Manual Review');
+
+    if (isSafeVal && !isManual) {
+        return {
+            id: 'approved',
+            label: 'Approved',
+            colorClass: 'text-pastel-mint',
+            icon: 'fa-circle-check',
+            tooltip: 'Everything is fine!'
+        };
+    } else if (isManual) {
+        return {
+            id: 'manual',
+            label: 'Potential Risk',
+            colorClass: 'text-pastel-canary',
+            icon: 'fa-triangle-exclamation',
+            tooltip: 'Video/landing page has potential but contains policy risks. Please review the content before running. Or contact us for support.'
+        };
+    } else {
+        const cleanReason = reason.replace(/Video: |LP: /g, '').trim();
+        return {
+            id: 'rejected',
+            label: 'Rejected',
+            colorClass: 'text-pastel-coral',
+            icon: 'fa-circle-xmark',
+            tooltip: `Your video has violated policy ${cleanReason || 'check'}. Prediction score: 0.`
+        };
+    }
+});
+
 const hasVideo = computed(() => {
     return (props.data?.creative_metrics?.duration_seconds || 0) > 0 || !!props.data?.creative_metrics?.hook_score;
 });
@@ -172,12 +205,16 @@ const hasVideo = computed(() => {
                 <!-- Policy Check Status Row (Spanning 2 cols) -->
                 <div class="col-span-2 bg-white dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700 p-4 rounded-xl flex items-center justify-between px-6 shadow-sm">
                     <span class="text-sm font-semibold text-gray-600 dark:text-gray-300">Policy Check</span>
-                    <span v-if="isSafe" class="flex items-center gap-2 text-pastel-mint font-bold text-sm">
-                        <i class="fa-solid fa-check"></i> Passed
-                    </span>
-                    <span v-else class="flex items-center gap-2 text-pastel-coral font-bold text-sm">
-                        <i class="fa-solid fa-triangle-exclamation"></i> Issues Found
-                    </span>
+                    <div class="relative group cursor-help flex items-center gap-2" :class="policyStatus.colorClass">
+                        <i :class="['fa-solid', policyStatus.icon]"></i>
+                        <span class="font-bold text-sm">{{ policyStatus.label }}</span>
+                        
+                        <!-- Tooltip Body -->
+                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2 bg-gray-900 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl font-normal text-center leading-relaxed">
+                            {{ policyStatus.tooltip }}
+                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-gray-900"></div>
+                        </div>
+                    </div>
                 </div>
 
             </div>
