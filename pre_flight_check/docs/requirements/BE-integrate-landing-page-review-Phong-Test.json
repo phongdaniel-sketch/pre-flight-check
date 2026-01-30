@@ -36,7 +36,7 @@
         },
         {
             "parameters": {
-                "url": "={{ $json.landing_page_url }}",
+                "url": "={{ $json[\"body.landing_page_url\"] }}",
                 "sendHeaders": true,
                 "headerParameters": {
                     "parameters": [
@@ -866,6 +866,7 @@
             "parameters": {
                 "httpMethod": "POST",
                 "path": "62490610-0585-4e53-8678-fe6da7ade707",
+                "responseMode": "responseNode",
                 "options": {}
             },
             "type": "n8n-nodes-base.webhook",
@@ -893,7 +894,7 @@
         },
         {
             "parameters": {
-                "fieldToSplitOut": "body.landingPages",
+                "fieldToSplitOut": "body.landing_page_url",
                 "options": {}
             },
             "type": "n8n-nodes-base.splitOut",
@@ -907,24 +908,47 @@
         },
         {
             "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json.result }}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
+            "position": [
+                -2288,
+                224
+            ],
+            "id": "85d1d85c-75b0-4683-be0f-ca205f8f7330",
+            "name": "Respond to Webhook"
+        },
+        {
+            "parameters": {
                 "method": "POST",
-                "url": "https://project-agents-taupe.vercel.app/api/webhook/callback",
+                "url": "={{ $json.callback_url }}",
                 "sendBody": true,
                 "specifyBody": "json",
-                "jsonBody": "={{ $json.result }}",
+                "jsonBody": "={\n  \"analysis_id\": \"{{ $json.analysis_id }}\",\n  \"n8n_status\": \"COMPLETED\",\n  \"policy_results\": {\n    \"landing_page\": {\n      \"is_safe\": {{ $json[\"Landing Page Analysis\"].is_safe }}, \n      \"reason\": \"{{ $json[\"Landing Page Analysis\"].reason }}\"\n    }\n  }\n}",
                 "options": {}
             },
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 4.3,
             "position": [
-                -2496,
+                -2080,
                 224
             ],
-            "id": "7fbc9f57-cdc5-4f68-a837-c6fb73cfd4a1",
-            "name": "Callback123"
+            "id": "4e7b2321-0f4f-4382-829e-68622bc3e9d8",
+            "name": "HTTP Request"
         }
     ],
-    "pinData": {},
+    "pinData": {
+        "Split Out2": [
+            {
+                "json": {
+                    "body.landing_page_url": "https://fineur.pk/products/fineur-handbag-elleknot-grey"
+                }
+            }
+        ]
+    },
     "connections": {
         "If": {
             "main": [
@@ -1348,7 +1372,7 @@
             "main": [
                 [
                     {
-                        "node": "Callback123",
+                        "node": "Respond to Webhook",
                         "type": "main",
                         "index": 0
                     }
@@ -1365,6 +1389,17 @@
                     }
                 ]
             ]
+        },
+        "Respond to Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "HTTP Request",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
         }
     },
     "active": true,
@@ -1372,7 +1407,7 @@
         "executionOrder": "v1",
         "availableInMCP": false
     },
-    "versionId": "12159734-a146-40bc-afb5-971d49069f4a",
+    "versionId": "ee1c3139-a66b-4b14-ada3-67cb067dc1ab",
     "meta": {
         "templateCredsSetupCompleted": true,
         "instanceId": "bb54f30464ad0297399ac28ffc2b017d17a7aed1ef125e4238fc5dc606a62d5d"

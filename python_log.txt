@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/Users/daniel/Documents/GitHub/Ecomdy Agents/pre_flight_check/services/python_api/main.py", line 1, in <module>
+    from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+ModuleNotFoundError: No module named 'fastapi'
