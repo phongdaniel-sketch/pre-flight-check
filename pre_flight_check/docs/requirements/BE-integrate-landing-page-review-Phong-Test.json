@@ -924,10 +924,10 @@
         {
             "parameters": {
                 "method": "POST",
-                "url": "={{ $json.callback_url }}",
+                "url": "={{ $('TTM-be').first().json.body.callback_url }}",
                 "sendBody": true,
                 "specifyBody": "json",
-                "jsonBody": "={\n  \"analysis_id\": \"{{ $json.analysis_id }}\",\n  \"n8n_status\": \"COMPLETED\",\n  \"policy_results\": {\n    \"landing_page\": {\n      \"is_safe\": {{ $json[\"Landing Page Analysis\"].is_safe }}, \n      \"reason\": \"{{ $json[\"Landing Page Analysis\"].reason }}\"\n    }\n  }\n}",
+                "jsonBody": "={\n  \"analysis_id\": \"{{ $('TTM-be').first().json.body.analysis_id }}\",\n  \"n8n_status\": \"COMPLETED\",\n  \"policy_results\": {\n    \"landing_page\": {\n      \"is_safe\": {{ $json.result.landing_pages_review?.[0]?.Recommendation === 'Approve' }}, \n      \"reason\": \"{{ $json.result.landing_pages_review?.[0]?.ViolationDetails || 'No details' }}\"\n    }\n  }\n}",
                 "options": {}
             },
             "type": "n8n-nodes-base.httpRequest",

@@ -4,7 +4,7 @@ dotenv.config();
 
 export class N8nClient {
     constructor() {
-        this.videoWebhookUrl = "https://n88n.ecomdymedia.com/webhook/45c08981-0739-4c4f-82f5-61402bff42de";
+        this.videoWebhookUrl = "https://n88n.ecomdymedia.com/webhook/62490610-0585-4e53-8678-fe6da7ade707";
         this.lpWebhookUrl = process.env.N8N_LP_WEBHOOK_URL;
     }
 
