@@ -927,7 +927,7 @@
                 "url": "={{ $('TTM-be').first().json.body.callback_url }}",
                 "sendBody": true,
                 "specifyBody": "json",
-                "jsonBody": "={\n  \"analysis_id\": \"{{ $('TTM-be').first().json.body.analysis_id }}\",\n  \"n8n_status\": \"COMPLETED\",\n  \"policy_results\": {\n    \"landing_page\": {\n      \"is_safe\": {{ $json.result.landing_pages_review?.[0]?.Recommendation === 'Approve' }}, \n      \"reason\": \"{{ $json.result.landing_pages_review?.[0]?.ViolationDetails || 'No details' }}\"\n    }\n  }\n}",
+                "jsonBody": "={\n  \"analysis_id\": \"{{ $('TTM-be').first().json.body.analysis_id }}\",\n  \"n8n_status\": \"COMPLETED\",\n  \"policy_results\": {\n    \"landing_page\": {\n      \"is_safe\": {{ $json.result.landing_pages_review?.[0]?.Recommendation === 'Approve' || ($json.result.landing_pages_review?.[0]?.Recommendation && $json.result.landing_pages_review?.[0]?.Recommendation.includes('Review')) }}, \n      \"reason\": \"{{ $json.result.landing_pages_review?.[0]?.Recommendation === 'Approve' ? 'Policy Safe' : ($json.result.landing_pages_review?.[0]?.Recommendation.includes('Review') ? 'Flagged for Manual Review: ' + ($json.result.landing_pages_review?.[0]?.ViolationDetails || 'Check details') : ($json.result.landing_pages_review?.[0]?.ViolationDetails || 'No details')) }}\"\n    }\n  }\n}",
                 "options": {}
             },
             "type": "n8n-nodes-base.httpRequest",
