@@ -1,15 +1,15 @@
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
 import { AnalysisController } from '../controllers/analysisController.js';
 import { WebhookController } from '../controllers/webhookController.js';
 
 const router = express.Router();
 
 // Configure Multer
-const uploadDir = process.env.VERCEL ? "/tmp" : path.join(process.cwd(), "api/src/uploads");
+const uploadDir = process.env.VERCEL ? "/tmp" : path.join(process.cwd(), "static/uploads");
 // Ensure dir exists
-import fs from 'fs';
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
 const storage = multer.diskStorage({
