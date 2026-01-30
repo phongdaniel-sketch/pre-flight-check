@@ -5,11 +5,14 @@ import { BenchmarkService } from '../services/benchmarkService.mjs';
 export class WebhookController {
     static async handleN8nResult(req, res) {
         try {
-            console.log("[Webhook] Received N8N Callback:", JSON.stringify(req.body));
+            console.log("\n--- [Webhook] N8N Callback RAW Payload ---");
+            console.log(JSON.stringify(req.body, null, 2));
+            console.log("-------------------------------------------\n");
 
             const { analysis_id, policy_results, n8n_status, error_message } = req.body;
 
             if (!analysis_id) {
+                console.error("[Webhook] Error: Missing analysis_id in payload");
                 return res.status(400).json({ error: "Missing analysis_id" });
             }
 
