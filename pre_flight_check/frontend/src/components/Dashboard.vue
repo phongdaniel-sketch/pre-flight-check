@@ -108,7 +108,7 @@ const statusLabel = computed(() => {
     const rating = props.data.final_rating;
     if (rating === 'Green') return 'Ready to Fly';
     if (rating === 'Yellow') return 'Needs Optimization';
-    return 'Rejected';
+    return 'High Risk';
 });
 
 const statusColorClass = computed(() => {
