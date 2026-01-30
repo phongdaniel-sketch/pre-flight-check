@@ -138,7 +138,7 @@ const statusColorClass = computed(() => {
                     </svg>
                     <div class="absolute inset-0 flex flex-col items-center justify-center">
                         <span class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Predictive Score</span>
-                        <span class="text-5xl font-extrabold text-gray-800 dark:text-white">{{ Math.round(data.predictive_score) }}</span>
+                        <span class="text-5xl font-extrabold text-gray-800 dark:text-white">{{ Math.round(data.predictive_score || 0) }}</span>
                         <div class="flex items-center gap-1 mt-2">
                             <div class="w-2 h-1 rounded-full" :class="data.final_rating === 'Red' ? 'bg-pastel-coral' : 'bg-gray-200 dark:bg-gray-600'"></div>
                             <div class="w-2 h-1 rounded-full" :class="data.final_rating === 'Yellow' ? 'bg-pastel-canary' : 'bg-gray-200 dark:bg-gray-600'"></div>
@@ -154,14 +154,14 @@ const statusColorClass = computed(() => {
                 <!-- Benchmark Card -->
                 <div class="bg-indigo-50/50 dark:bg-indigo-900/20 p-6 rounded-2xl border border-indigo-50 dark:border-indigo-800 flex flex-col items-center justify-center text-center">
                     <div class="text-[10px] font-bold text-indigo-400 dark:text-indigo-300 uppercase tracking-widest mb-2">Benchmark</div>
-                    <span class="text-4xl font-extrabold text-indigo-900 dark:text-white" id="benchmarkVal">{{ Math.round(data.benchmark_score) }}</span>
+                    <span class="text-4xl font-extrabold text-indigo-900 dark:text-white" id="benchmarkVal">{{ Math.round(data.benchmark_score || 0) }}</span>
                     <div class="w-8 h-1 bg-indigo-200 dark:bg-indigo-700 rounded-full mt-3"></div>
                 </div>
 
                 <!-- DNA Score Card -->
                 <div class="bg-purple-50/50 dark:bg-purple-900/20 p-6 rounded-2xl border border-purple-50 dark:border-purple-800 flex flex-col items-center justify-center text-center">
                     <div class="text-[10px] font-bold text-purple-400 dark:text-purple-300 uppercase tracking-widest mb-2">DNA Score</div>
-                    <span class="text-4xl font-extrabold text-purple-900 dark:text-white">{{ data.dna_score.toFixed(0) }}</span>
+                    <span class="text-4xl font-extrabold text-purple-900 dark:text-white">{{ (data.dna_score || 0).toFixed(0) }}</span>
                     <div class="w-8 h-1 bg-purple-200 dark:bg-purple-700 rounded-full mt-3"></div>
                 </div>
 
