@@ -40,6 +40,13 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', service: 'Pre-flight Check Backend (Node.js)' });
 });
 
+import { exec } from 'child_process';
+app.get('/api/debug-ls', (req, res) => {
+    exec('ls -R', (err, stdout, stderr) => {
+        res.send(`<pre>CWD: ${process.cwd()}\n\n${stdout}</pre>`);
+    });
+});
+
 // For Local Dev
 if (!process.env.VERCEL) {
     app.listen(port, () => {
