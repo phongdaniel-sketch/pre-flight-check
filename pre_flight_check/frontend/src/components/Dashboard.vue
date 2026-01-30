@@ -11,7 +11,7 @@ const props = defineProps({
 
 // Benchmark Rating Color
 const benchmarkColor = computed(() => {
-    const score = props.data.benchmark_score;
+    const score = props.data?.benchmark_score || 0;
     if (score > 80) return 'text-pastel-mint';
     if (score >= 50) return 'text-pastel-canary';
     return 'text-pastel-coral';
@@ -19,7 +19,7 @@ const benchmarkColor = computed(() => {
 
 // DNA Rating Color
 const dnaColor = computed(() => {
-  const score = props.data.dna_score;
+  const score = props.data?.dna_score || 0;
   if (score > 80) return 'text-pastel-mint';
   if (score >= 50) return 'text-pastel-canary';
   return 'text-pastel-coral';
@@ -27,13 +27,13 @@ const dnaColor = computed(() => {
 
 // Final Score Color
 const finalRatingColor = computed(() => {
-  return props.data.final_rating === 'Red' ? 'text-pastel-coral' : 
-         props.data.final_rating === 'Yellow' ? 'text-pastel-canary' : 'text-pastel-mint';
+  return (props.data?.final_rating || 'Pending') === 'Red' ? 'text-pastel-coral' : 
+         (props.data?.final_rating || 'Pending') === 'Yellow' ? 'text-pastel-canary' : 'text-pastel-mint';
 });
 
 // Policy Logic
 const policyReasons = computed(() => {
-    const raw = props.data.policy_check.reason || 'Unsafe';
+    const raw = props.data?.policy_check?.reason || props.data?.policy_reason || 'Pending Analysis...';
     return raw.split('; ').map(r => {
         let badge = '';
         let content = r;
@@ -57,12 +57,12 @@ const policyReasons = computed(() => {
     });
 });
 
-const isSafe = computed(() => props.data.policy_check.is_safe);
+const isSafe = computed(() => props.data?.policy_check?.is_safe ?? props.data?.is_safe ?? true);
 
 // Assessment Parsing
 const assessmentPoints = computed(() => {
-    let msg = props.data.message.replace('Analysis Complete. ', '');
-    if (msg === 'Policy Safe') msg = 'No policy violations found.';
+    let msg = (props.data?.message || props.data?.policy_reason || '').replace('Analysis Complete. ', '');
+    if (msg === 'Policy Safe' || !msg) msg = 'No policy violations found.';
     
     return msg.split('; ').map(p => {
         let title = '';
@@ -138,7 +138,7 @@ const statusColorClass = computed(() => {
                     </svg>
                     <div class="absolute inset-0 flex flex-col items-center justify-center">
                         <span class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Predictive Score</span>
-                        <span class="text-5xl font-extrabold text-gray-800 dark:text-white">{{ Math.round(data.predictive_score || 0) }}</span>
+                        <span class="text-5xl font-extrabold text-gray-800 dark:text-white">{{ Math.round(data?.predictive_score || 0) }}</span>
                         <div class="flex items-center gap-1 mt-2">
                             <div class="w-2 h-1 rounded-full" :class="data.final_rating === 'Red' ? 'bg-pastel-coral' : 'bg-gray-200 dark:bg-gray-600'"></div>
                             <div class="w-2 h-1 rounded-full" :class="data.final_rating === 'Yellow' ? 'bg-pastel-canary' : 'bg-gray-200 dark:bg-gray-600'"></div>
@@ -234,7 +234,7 @@ const statusColorClass = computed(() => {
                     <span class="font-bold text-indigo-600 dark:text-indigo-400">{{ data.creative_metrics.hook_score }}/100</span>
                 </div>
                 <div class="w-full bg-gray-100 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
-                    <div class="h-full bg-indigo-500 transition-all duration-1000" :style="{width: data.creative_metrics.hook_score + '%'}"></div>
+                    <div class="h-full bg-indigo-500 transition-all duration-1000" :style="{width: (data?.creative_metrics?.hook_score || 0) + '%'}"></div>
                 </div>
             </div>
 
@@ -242,21 +242,21 @@ const statusColorClass = computed(() => {
             <div>
                 <div class="flex justify-between text-sm mb-1">
                     <span class="font-medium text-gray-600 dark:text-gray-400">Pacing Score</span>
-                    <span class="font-bold text-purple-600 dark:text-purple-400">{{ data.creative_metrics.pacing_score }}/100</span>
+                    <span class="font-bold text-purple-600 dark:text-purple-400">{{ (data?.creative_metrics?.pacing_score || 0) }}/100</span>
                 </div>
                 <div class="w-full bg-gray-100 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
-                    <div class="h-full bg-purple-500 transition-all duration-1000" :style="{width: data.creative_metrics.pacing_score + '%'}"></div>
+                    <div class="h-full bg-purple-500 transition-all duration-1000" :style="{width: (data?.creative_metrics?.pacing_score || 0) + '%'}"></div>
                 </div>
             </div>
 
             <div class="flex justify-between items-center py-2 border-t border-gray-100 dark:border-gray-700 mt-2">
                 <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Safe Zone</span>
-                <span v-if="data.creative_metrics.safe_zone" class="px-3 py-1 rounded-full bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-bold border border-green-100 dark:border-green-800">Compliant</span>
+                <span v-if="data?.creative_metrics?.safe_zone" class="px-3 py-1 rounded-full bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-bold border border-green-100 dark:border-green-800">Compliant</span>
                 <span v-else class="px-3 py-1 rounded-full bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400 text-xs font-bold border border-red-100 dark:border-red-800">X Violation</span>
             </div>
              <div class="flex justify-between items-center py-2 border-t border-gray-100 dark:border-gray-700">
                 <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Duration</span>
-                <span class="text-sm font-bold text-gray-800 dark:text-white">{{ data.creative_metrics.duration_seconds }}s</span>
+                <span class="text-sm font-bold text-gray-800 dark:text-white">{{ data?.creative_metrics?.duration_seconds || 0 }}s</span>
             </div>
        </div>
     </div>

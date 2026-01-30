@@ -209,7 +209,7 @@ const submitForm = async () => {
             pollStatus(res.data.analysis_id);
         } else {
             // Fallback for synchronous response (if any)
-            emit('success', res.data);
+            emit('success', res.data.results);
             isAnalyzing.value = false;
         }
 
@@ -247,7 +247,7 @@ const pollStatus = async (analysisId) => {
             if (status === 'COMPLETED') {
                 clearInterval(secondsInterval);
                 isAnalyzing.value = false;
-                emit('success', { results }); // Backend returns wrapped results
+                emit('success', results); // Emit results directly
             } else if (status === 'FAILED') {
                 clearInterval(secondsInterval);
                 isAnalyzing.value = false;
