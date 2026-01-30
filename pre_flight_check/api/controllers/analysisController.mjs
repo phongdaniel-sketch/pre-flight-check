@@ -1,7 +1,7 @@
-import { BenchmarkService } from '../services/benchmarkService.js';
-import { N8nClient } from '../services/n8nService.js';
-import { ScoringEngine } from '../services/scoringService.js';
-import AnalysisResult from '../models/AnalysisResult.js';
+import { BenchmarkService } from '../services/benchmarkService.mjs';
+import { N8nClient } from '../services/n8nService.mjs';
+import { ScoringEngine } from '../services/scoringService.mjs';
+import AnalysisResult from '../models/AnalysisResult.mjs';
 
 export class AnalysisController {
     static async analyze(req, res) {

@@ -5,7 +5,7 @@ export default async (req, res) => {
     }
 
     try {
-        const { default: app } = await import('./server.js');
+        const { default: app } = await import('./server.mjs');
         return app(req, res);
     } catch (err) {
         console.error('SERVER_IMPORT_ERROR:', err);

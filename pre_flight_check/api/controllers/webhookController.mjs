@@ -1,6 +1,6 @@
-import AnalysisResult from '../models/AnalysisResult.js';
-import { ScoringEngine } from '../services/scoringService.js';
-import { BenchmarkService } from '../services/benchmarkService.js';
+import AnalysisResult from '../models/AnalysisResult.mjs';
+import { ScoringEngine } from '../services/scoringService.mjs';
+import { BenchmarkService } from '../services/benchmarkService.mjs';
 
 export class WebhookController {
     static async handleN8nResult(req, res) {
