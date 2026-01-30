@@ -1,4 +1,4 @@
-import app from '../backend/src/server.js';
+import app from './server.js';
 
 export default async (req, res) => {
     // Immediate verification endpoint
