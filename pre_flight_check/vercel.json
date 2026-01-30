@@ -6,16 +6,8 @@
             "destination": "/api/index.js"
         },
         {
-            "source": "/assets/(.*)",
-            "destination": "/public/assets/$1"
-        },
-        {
-            "source": "/vite.svg",
-            "destination": "/public/vite.svg"
-        },
-        {
-            "source": "/((?!api/|public/|favicon.ico).*)",
-            "destination": "/public/index.html"
+            "source": "/((?!api/|assets/|favicon.ico).*)",
+            "destination": "/index.html"
         }
     ],
     "functions": {
