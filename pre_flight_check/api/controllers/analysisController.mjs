@@ -77,30 +77,31 @@ export class AnalysisController {
 
             if (syncResult) {
                 // Scenario A: Fast Response (Sync)
-                console.log(`[Controller] Sync Response Success for ${analysisId}`);
+                console.log(`[Controller] Sync response from N8N for ${analysisId}. Checking completion...`);
 
-                // Since WebhookController already processed the data (and echoed it back),
-                // we fetch the updated record from the DB to ensure consistency.
                 const updatedAnalysis = await AnalysisResult.findById(analysisId);
 
-                return res.json({
-                    message: "Analysis Completed",
-                    analysis_id: analysisId,
-                    status: updatedAnalysis.status,
-                    results: updatedAnalysis.results
-                });
-
-            } else {
-                // Scenario B: Timeout (Async)
-                console.log(`[Controller] Timeout for ${analysisId}. Switching to Async.`);
-
-                // Return 202 Accepted
-                return res.status(202).json({
-                    message: "Analysis continuing in background",
-                    analysis_id: analysisId,
-                    status: "PENDING"
-                });
+                if (updatedAnalysis.status === 'COMPLETED') {
+                    console.log(`[Controller] Analysis ${analysisId} is already COMPLETED (Sync).`);
+                    return res.json({
+                        message: "Analysis Completed",
+                        analysis_id: analysisId,
+                        status: updatedAnalysis.status,
+                        results: updatedAnalysis.results
+                    });
+                } else {
+                    console.log(`[Controller] N8N acknowledged sync but Analysis ${analysisId} is still ${updatedAnalysis.status}. Falling back to Polling (202).`);
+                    // Fallthrough to Scenario B
+                }
             }
+
+            // Scenario B: Timeout or Still Pending
+            console.log(`[Controller] Analysis ${analysisId} continuing in background (202).`);
+            return res.status(202).json({
+                message: "Analysis continuing in background",
+                analysis_id: analysisId,
+                status: "PENDING"
+            });
 
         } catch (error) {
             console.error("Controller Error:", error);
