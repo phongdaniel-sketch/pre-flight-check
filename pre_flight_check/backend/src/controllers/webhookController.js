@@ -25,16 +25,30 @@ export class WebhookController {
                 return res.json({ status: "ok", message: "Record marked as FAILED" });
             }
 
-            // Extract results
+            // Extract and Normalize results
             const videoPolicy = policy_results?.video || { is_safe: true, reason: "N8N Video Skipped/Passed" };
             const lpPolicy = policy_results?.landing_page || { is_safe: true, reason: "N8N LP Skipped/Passed" };
 
-            // Aggregation Logic (Similar to original AnalysisController)
-            const isSafe = videoPolicy.is_safe && lpPolicy.is_safe;
+            // Helper to safe cast to boolean
+            const toBool = (val) => String(val).toLowerCase() === 'true';
+
+            const videoSafe = toBool(videoPolicy.is_safe);
+            const lpSafe = toBool(lpPolicy.is_safe);
+            const videoReason = videoPolicy.reason || "";
+            const lpReason = lpPolicy.reason || "";
+
+            // Check for explicit violations OR manual review flags in text
+            const isVideoFlagged = !videoSafe || videoReason.includes('Flagged') || videoReason.includes('Review');
+            const isLpFlagged = !lpSafe || lpReason.includes('Flagged') || lpReason.includes('Review');
+
             const reasons = [];
-            if (!videoPolicy.is_safe) reasons.push(`Video: ${videoPolicy.reason}`);
-            if (!lpPolicy.is_safe) reasons.push(`LP: ${lpPolicy.reason}`);
+            if (isVideoFlagged) reasons.push(`Video: ${videoReason}`);
+            if (isLpFlagged) reasons.push(`LP: ${lpReason}`);
             const reasonStr = reasons.length ? reasons.join('; ') : "Policy Safe";
+
+            // Aggregation Logic
+            // Note: Manual Review (Yellow) is considered "Safe" for scoring purposes, but has a flagged reason.
+            const isSafe = videoSafe && lpSafe;
 
             // Recalculate Scores if needed (though context is saved in DB)
             // We use the PREVIOUSLY saved creative_metrics (from client)
@@ -46,7 +60,13 @@ export class WebhookController {
             const predictiveScore = isSafe
                 ? ScoringEngine.calculateFinalScore(benchmarkScore, dnaScore)
                 : 0.0;
-            const finalRating = ScoringEngine.getRating(predictiveScore, isSafe);
+
+            // Determine Final Rating
+            // Force Yellow if Manual Review is required but score classified it as Green
+            let finalRating = ScoringEngine.getRating(predictiveScore, isSafe);
+            if (isSafe && (isVideoFlagged || isLpFlagged) && finalRating === 'Green') {
+                finalRating = 'Yellow';
+            }
 
             // Update Record
             analysisRecord.status = 'COMPLETED';
