@@ -70,7 +70,10 @@ Analyzes the structure of your video content.
 Before calculating the final score, the system checks for violations.
 *   **Video**: AI analysis via N8N for banned content/text.
 *   **Landing Page**: AI analysis via N8N for compliance.
-*   **Result**: If **ANY** violation is found, the **Final Score is 0** and Rating is **Red**.
+*   **Status & Colors**:
+    *   ✅ **Passed**: `text-pastel-mint` (#74CDB1) - No violations detected.
+    *   ⚠️ **Issues Found**: `text-pastel-coral` (#FF8A8A) - Violation detected in Video or LP.
+*   **Result**: If **ANY** violation is found, the **Final Score is 0** and Rating is **Red (High Risk)**.
 
 ### 4. Final Predictive Score
 Combines creative quality with market bidding competitiveness.
@@ -79,4 +82,4 @@ Combines creative quality with market bidding competitiveness.
 ### 5. Final Rating & Status Label
 *   🟢 **Green** (> 80): **"Ready to Fly"** - High probability of success.
 *   🟡 **Yellow** (50 - 80): **"Needs Optimization"** - Acceptable but room for improvement.
-*   🔴 **Red** (< 50 or Policy Issue): **"Rejected"** - Likely to fail or violates policy.
+*   🔴 **Red** (< 50 or Policy Issue): **"High Risk"** - Likely to fail or violates policy.
