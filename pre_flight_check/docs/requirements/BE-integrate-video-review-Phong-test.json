@@ -217,7 +217,7 @@
                 "url": "={{ $(\"Webhook\").first().json.body.callback_url }}",
                 "sendBody": true,
                 "specifyBody": "json",
-                "jsonBody": "={\n  \"analysis_id\": \"{{ $(\"Webhook\").first().json.body.analysis_id }}\",\n  \"n8n_status\": \"COMPLETED\",\n  \"policy_results\": {\n    \"video\": {\n      \"is_safe\": {{ $json.result.creative_videos_review[0].TextAnalysisResult === 'Compliant' }},\n      \"reason\": \"{{ $json.result.creative_videos_review[0].ViolationDetails || 'Policy Safe' }}\"\n    }\n  }\n}",
+                "jsonBody": "={\n  \"analysis_id\": \"{{ $(\"Webhook\").first().json.body.analysis_id }}\",\n  \"n8n_status\": \"COMPLETED\",\n  \"policy_results\": {\n    \"video\": {\n      \"is_safe\": {{ $json.result.creative_videos_review[0].TextAnalysisResult === 'Compliant' || $json.result.creative_videos_review[0].TextAnalysisResult.includes('Flagged') }},\n      \"reason\": \"{{ $json.result.creative_videos_review[0].TextAnalysisResult === 'Compliant' ? 'Policy Safe' : 'Flagged for Manual Review: ' + ($json.result.creative_videos_review[0].ViolationDetails || $json.result.creative_videos_review[0].TextViolationDetails) }}\"\n    }\n  }\n}",
                 "options": {}
             },
             "type": "n8n-nodes-base.httpRequest",
