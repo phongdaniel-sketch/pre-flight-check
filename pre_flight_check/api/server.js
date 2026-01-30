@@ -6,8 +6,8 @@ const app = express();
 import apiRoutes from './routes/apiRoutes.js';
 import { connectDB } from './config/db.js';
 
-// DB Connection
-connectDB().catch(err => console.error('DB Initial Connection Error:', err));
+// DB Connection (Temporarily disabled for isolation test)
+// connectDB().catch(err => console.error('DB Initial Connection Error:', err));
 
 app.use(cors());
 app.use(express.json());
