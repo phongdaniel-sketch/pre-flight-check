@@ -1,4 +1,4 @@
-import app from './_lib/server.js';
+import app from '../backend/src/server.js';
 export default app;
 
 export const config = {

@@ -4,7 +4,7 @@
     "private": true,
     "scripts": {
         "frontend": "cd frontend && npm run dev",
-        "backend": "cd api && node _lib/server.js",
+        "backend": "cd backend && node src/server.js",
         "dev": "npm run frontend",
         "build": "cd frontend && npm install && npm run build -- --outDir ../public"
     },
@@ -15,7 +15,8 @@
         "express": "^5.2.1",
         "mongoose": "^9.1.5",
         "multer": "^2.0.2",
-        "openai": "^6.16.0"
+        "openai": "^6.16.0",
+        "uuid": "^9.0.1"
     },
     "engines": {
         "node": ">=18.0.0"
