@@ -69,7 +69,17 @@ export class AnalysisController {
                 video_url: videoUrl,
                 landing_page_url: landing_page_url,
                 industry: industry_id,
-                country
+                country,
+                // Added for n8n Split Out compatibility
+                creative_videos: [
+                    {
+                        video_id: analysisId,
+                        video_preview_url: videoUrl,
+                        age_groups: "All Ages",
+                        country: country,
+                        ads_detail: industry_id
+                    }
+                ]
             };
 
             // Hybrid Call: Wait 50s for Sync response

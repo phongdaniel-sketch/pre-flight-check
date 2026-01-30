@@ -116,25 +116,7 @@
         },
         {
             "parameters": {
-                "method": "POST",
-                "url": "https://project-agents-taupe.vercel.app/api/webhook/callback",
-                "sendBody": true,
-                "specifyBody": "json",
-                "jsonBody": "={{ $json.result }}",
-                "options": {}
-            },
-            "type": "n8n-nodes-base.httpRequest",
-            "typeVersion": 4.3,
-            "position": [
-                368,
-                -16
-            ],
-            "id": "c722cac0-b11a-43bf-86f9-c0a7bac59879",
-            "name": "Callback123"
-        },
-        {
-            "parameters": {
-                "jsCode": "return {\n  result: {\n    creative_videos_review: $input.all().map(item => item.json),\n    queue_job_id: $('Webhook').first().json.body.queue_job_id\n  },\n  \n}"
+                "jsCode": "return {\n  result: {\n    creative_videos_review: $input.all().map(item => item.json),\n    queue_job_id: $(\"Webhook\").first().json.body.queue_job_id\n  }\n}"
             },
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
@@ -228,6 +210,24 @@
             ],
             "id": "7f36acdf-a24c-40ca-8105-c5d440d85d31",
             "name": "Respond to Webhook"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "={{ $(\"Webhook\").first().json.body.callback_url }}",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"analysis_id\": \"{{ $(\"Webhook\").first().json.body.analysis_id }}\",\n  \"n8n_status\": \"COMPLETED\",\n  \"policy_results\": {\n    \"video\": {\n      \"is_safe\": {{ $json.result.creative_videos_review[0].TextAnalysisResult === 'Compliant' }},\n      \"reason\": \"{{ $json.result.creative_videos_review[0].ViolationDetails || 'Policy Safe' }}\"\n    }\n  }\n}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.3,
+            "position": [
+                544,
+                -176
+            ],
+            "id": "66ce05d0-5cb9-4738-82ab-411fe0791de2",
+            "name": "Callback for Pre-flight Check"
         }
     ],
     "pinData": {},
@@ -269,7 +269,7 @@
             "main": [
                 [
                     {
-                        "node": "Code in JavaScript2",
+                        "node": "Loop Over Items2",
                         "type": "main",
                         "index": 0
                     }
@@ -285,7 +285,13 @@
                         "index": 0
                     }
                 ],
-                []
+                [
+                    {
+                        "node": "Code in JavaScript2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
             ]
         },
         "Webhook": {
@@ -332,7 +338,7 @@
                 ],
                 [
                     {
-                        "node": "Code in JavaScript2",
+                        "node": "Loop Over Items2",
                         "type": "main",
                         "index": 0
                     }
@@ -349,6 +355,17 @@
                     }
                 ]
             ]
+        },
+        "Respond to Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Callback for Pre-flight Check",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
         }
     },
     "active": true,
@@ -356,7 +373,7 @@
         "executionOrder": "v1",
         "availableInMCP": false
     },
-    "versionId": "d8456ea3-2ba9-48c1-a67b-af6c7839ff1f",
+    "versionId": "final-v1",
     "meta": {
         "templateCredsSetupCompleted": true,
         "instanceId": "bb54f30464ad0297399ac28ffc2b017d17a7aed1ef125e4238fc5dc606a62d5d"
